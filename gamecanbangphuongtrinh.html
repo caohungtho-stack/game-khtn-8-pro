@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Cân Bằng Phương Trình - Thầy Cao Hùng Thọ</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #cbd5e0; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+        .game-container {
+            background: var(--white);
+            width: 95%;
+            max-width: 900px;
+            min-height: 600px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 25px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        header h1 { color: var(--primary); margin: 0; font-size: 1.6rem; }
+        header p { color: var(--accent); font-weight: bold; font-style: italic; margin: 5px 0 20px 0; }
+
+        .screen { display: none; animation: fadeIn 0.5s ease; flex-grow: 1; }
+        .active { display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Màn hình nhập thông tin */
+        .input-box { max-width: 400px; margin: 40px auto; width: 100%; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--primary); }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; }
+        .input-group input:focus { border-color: var(--accent); outline: none; }
+
+        /* Dashboard game */
+        .dashboard {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px; background: var(--light); padding: 15px; border-radius: 15px; margin-bottom: 20px;
+        }
+        .stat-item { font-size: 0.9rem; font-weight: bold; color: var(--primary); }
+        .stat-val { color: var(--accent); font-size: 1.1rem; display: block; }
+        #timer.warning { color: var(--danger); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* Khu vực kéo thả */
+        .bank {
+            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+            padding: 15px; background: #f8fafc; border-radius: 12px; margin-bottom: 25px;
+        }
+        .num-tag {
+            width: 45px; height: 45px; background: var(--primary); color: white;
+            border-radius: 8px; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; cursor: grab; user-select: none; transition: 0.2s;
+        }
+        .num-tag:active { transform: scale(1.1); cursor: grabbing; }
+
+        .equation-area {
+            font-size: 1.8rem; margin: 30px 0; display: flex; justify-content: center;
+            align-items: center; flex-wrap: wrap; gap: 12px; line-height: 2.5;
+        }
+        .slot {
+            width: 50px; height: 50px; border: 3px dashed #cbd5e0; border-radius: 10px;
+            display: inline-flex; justify-content: center; align-items: center;
+            color: var(--accent); font-weight: bold; background: #fff; transition: 0.3s;
+        }
+        .slot.hover { border-color: var(--accent); background: #fff7ed; }
+        .slot.filled { border-style: solid; border-color: var(--accent); }
+        sub { font-size: 0.6em; }
+
+        /* Nút bấm */
+        .btn-group { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer;
+            font-weight: bold; transition: 0.3s; font-size: 1rem;
+        }
+        .btn-start { background: var(--success); color: white; width: 100%; }
+        .btn-check { background: var(--accent); color: white; }
+        .btn-clear { background: #94a3b8; color: white; }
+        .btn-skip { background: var(--primary); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Kết quả */
+        .result-box {
+            border: 4px solid var(--success); border-radius: 20px; padding: 30px;
+            background: #fff; margin: 20px 0; text-align: left; position: relative;
+        }
+        .result-title { text-align: center; color: var(--success); margin-bottom: 20px; }
+        .res-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .res-val { font-weight: bold; color: var(--primary); }
+        .final-brand { text-align: center; margin-top: 20px; font-weight: bold; color: var(--primary); }
+        
+        .firework { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+
+        footer { margin-top: 20px; font-size: 0.8rem; color: #64748b; border-top: 1px solid #eee; padding-top: 15px; }
+
+        @media (max-width: 600px) {
+            .equation-area { font-size: 1.2rem; }
+            .slot, .num-tag { width: 38px; height: 38px; }
+            .game-container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <header>
+            <h1>Game cân bằng phương trình của thầy Cao Hùng Thọ - Trường THCS Tân Hóa</h1>
+            <p>“Học Hóa dễ dàng – Cân bằng thật nhanh!”</p>
+        </header>
+
+        <div id="start-screen" class="screen active">
+            <div class="input-box">
+                <div class="input-group">
+                    <label>Họ và tên học sinh:</label>
+                    <input type="text" id="name-input" placeholder="Ví dụ: Nguyễn Văn A">
+                </div>
+                <div class="input-group">
+                    <label>Lớp:</label>
+                    <input type="text" id="class-input" placeholder="Ví dụ: 8A1">
+                </div>
+                <button class="btn btn-start" onclick="startGame()">BẮT ĐẦU LÀM BÀI</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="dashboard">
+                <div class="stat-item">Câu: <span class="stat-val" id="q-number">1/20</span></div>
+                <div class="stat-item">Điểm: <span class="stat-val" id="q-score">0</span></div>
+                <div class="stat-item">Thời gian: <span class="stat-val" id="timer">120s</span></div>
+                <div class="stat-item">Tổng KT: <span class="stat-val" id="total-checks">0</span></div>
+            </div>
+
+            <div class="bank" id="num-bank"></div>
+
+            <div class="equation-area" id="eq-area"></div>
+
+            <div id="feedback" style="min-height: 24px; font-weight: bold; margin: 10px 0;"></div>
+
+            <div class="btn-group">
+                <button class="btn btn-check" onclick="checkResponse()">Kiểm tra đáp án</button>
+                <button class="btn btn-clear" onclick="resetCoefficients()">Xóa hệ số</button>
+                <button class="btn btn-skip" onclick="skipQuestion()">Qua câu</button>
+            </div>
+            <p style="font-size: 0.8rem; color: #888;">Lần kiểm tra câu này: <span id="local-checks">0</span></p>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <div id="firework-container" class="firework"></div>
+            <div class="result-box">
+                <h2 class="result-title">KẾT QUẢ HOÀN THÀNH</h2>
+                <div class="res-line"><span>Họ và tên:</span> <span class="res-val" id="res-name"></span></div>
+                <div class="res-line"><span>Lớp:</span> <span class="res-val" id="res-class"></span></div>
+                <div class="res-line"><span>Tổng điểm:</span> <span class="res-val" id="res-score"></span></div>
+                <div class="res-line"><span>Tổng lần kiểm tra:</span> <span class="res-val" id="res-checks"></span></div>
+                <div class="res-line"><span>Thời gian làm bài:</span> <span class="res-val" id="res-time"></span></div>
+                <div class="res-line"><span>Ngày hoàn thành:</span> <span class="res-val" id="res-date"></span></div>
+                <div class="res-line"><span>Mã bài làm:</span> <span class="res-val" style="color:var(--accent)" id="res-code"></span></div>
+                <div class="res-line" style="background:#fef3c7"><span>Mã xác thực:</span> <span class="res-val" id="res-verify"></span></div>
+                
+                <div class="final-brand">
+                    Game cân bằng phương trình<br>
+                    Thầy Cao Hùng Thọ – Trường THCS Tân Hóa
+                </div>
+            </div>
+            <h3 style="color: var(--accent)">Em hãy chụp màn hình kết quả này và gửi qua Zalo cho thầy.</h3>
+            <button class="btn btn-skip" onclick="location.reload()">Chơi lại</button>
+        </div>
+
+        <footer>
+            © Game học tập Hóa học – Thầy Cao Hùng Thọ – THCS Tân Hóa
+        </footer>
+    </div>
+
+    <script>
+        /* ============================================================
+           DỮ LIỆU PHƯƠNG TRÌNH (Dễ dàng thêm/sửa ở đây)
+           Cấu trúc: { left: [chất 1, chất 2], right: [chất 3, chất 4] }
+           ============================================================ */
+        const RAW_EQUATIONS = [
+            { left: ["H2", "O2"], right: ["H2O", "O2_dummy"] },
+            { left: ["Mg", "HCl"], right: ["MgCl2", "H2"] },
+            { left: ["Al", "O2"], right: ["Al2O3", "O2_dummy"] },
+            { left: ["P", "O2"], right: ["P2O5", "O2_dummy"] },
+            { left: ["Na", "H2O"], right: ["NaOH", "H2"] },
+            { left: ["Fe", "CuSO4"], right: ["FeSO4", "Cu"] },
+            { left: ["CH4", "O2"], right: ["CO2", "H2O"] },
+            { left: ["C2H4", "O2"], right: ["CO2", "H2O"] },
+            { left: ["NaOH", "HCl"], right: ["NaCl", "H2O"] },
+            { left: ["BaCl2", "AgNO3"], right: ["AgCl", "Ba(NO3)2"] },
+            { left: ["KClO3", "KClO3_dummy"], right: ["KCl", "O2"] },
+            { left: ["Zn", "H2SO4"], right: ["ZnSO4", "H2"] },
+            { left: ["Al", "H2SO4"], right: ["Al2(SO4)3", "H2"] },
+            { left: ["Fe2O3", "CO"], right: ["Fe", "CO2"] },
+            { left: ["Ca(OH)2", "CO2"], right: ["CaCO3", "H2O"] },
+            { left: ["N2", "H2"], right: ["NH3", "H2_dummy"] },
+            { left: ["Fe3O4", "H2"], right: ["Fe", "H2O"] },
+            { left: ["Na2CO3", "CaCl2"], right: ["CaCO3", "NaCl"] },
+            { left: ["AgNO3", "Cu"], right: ["Cu(NO3)2", "Ag"] },
+            { left: ["CaCO3", "HCl"], right: ["CaCl2", "H2O+CO2_dummy"] }
+        ];
+
+        // Biến trạng thái game
+        let game = {
+            studentName: "", studentClass: "",
+            score: 0, currentIdx: 0, totalChecks: 0, localChecks: 0,
+            timeLeft: 120, timer: null, startTime: null,
+            questions: [], draggedValue: null
+        };
+
+        /* ================= LOGIC KHỞI TẠO ================= */
+        function startGame() {
+            game.studentName = document.getElementById('name-input').value.trim();
+            game.studentClass = document.getElementById('class-input').value.trim();
+
+            if (!game.studentName || !game.studentClass) {
+                alert("Em vui lòng nhập đầy đủ Họ tên và Lớp nhé!");
+                return;
+            }
+
+            // Xáo trộn 20 câu
+            game.questions = [...RAW_EQUATIONS].sort(() => Math.random() - 0.5);
+            game.startTime = Date.now();
+            
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            initBank();
+            loadQuestion();
+        }
+
+        function initBank() {
+            const bank = document.getElementById('num-bank');
+            bank.innerHTML = '';
+            for(let i=1; i<=8; i++) {
+                const tag = document.createElement('div');
+                tag.className = 'num-tag';
+                tag.innerText = i;
+                tag.draggable = true;
+                tag.addEventListener('dragstart', () => game.draggedValue = i);
+                tag.addEventListener('click', () => { // Hỗ trợ mobile click-to-fill
+                    const emptySlot = document.querySelector('.slot:not(.filled)');
+                    if(emptySlot) fillSlot(emptySlot, i);
+                });
+                bank.appendChild(tag);
+            }
+        }
+
+        /* ================= LOGIC GAMEPLAY ================= */
+        function loadQuestion() {
+            if (game.currentIdx >= game.questions.length) {
+                endGame();
+                return;
+            }
+
+            clearInterval(game.timer);
+            game.timeLeft = 120;
+            game.localChecks = 0;
+            updateUI();
+            
+            const area = document.getElementById('eq-area');
+            area.innerHTML = '';
+            const q = game.questions[game.currentIdx];
+
+            const renderPart = (list, isRight) => {
+                list.forEach((chem, i) => {
+                    if (chem.includes('_dummy')) return;
+                    
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.addEventListener('dragover', e => e.preventDefault());
+                    slot.addEventListener('dragenter', () => slot.classList.add('hover'));
+                    slot.addEventListener('dragleave', () => slot.classList.remove('hover'));
+                    slot.addEventListener('drop', () => {
+                        slot.classList.remove('hover');
+                        fillSlot(slot, game.draggedValue);
+                    });
+                    slot.addEventListener('click', () => fillSlot(slot, null));
+                    
+                    const formula = document.createElement('span');
+                    formula.innerHTML = formatChemical(chem);
+
+                    area.appendChild(slot);
+                    area.appendChild(formula);
+                    if (i === 0 && !list[1].includes('_dummy')) {
+                        const plus = document.createElement('span');
+                        plus.innerText = ' + ';
+                        area.appendChild(plus);
+                    }
+                });
+            };
+
+            renderPart(q.left, false);
+            area.insertAdjacentHTML('beforeend', '<span> &rarr; </span>');
+            renderPart(q.right, true);
+
+            game.timer = setInterval(tick, 1000);
+        }
+
+        function tick() {
+            game.timeLeft--;
+            const timerEl = document.getElementById('timer');
+            timerEl.innerText = game.timeLeft + 's';
+            if (game.timeLeft <= 20) timerEl.className = 'stat-val warning';
+            else timerEl.className = 'stat-val';
+
+            if (game.timeLeft <= 0) {
+                clearInterval(game.timer);
+                alert("Hết thời gian câu này rồi!");
+                skipQuestion();
+            }
+        }
+
+        function fillSlot(slot, val) {
+            if (val === null) {
+                slot.innerText = '';
+                slot.classList.remove('filled');
+            } else {
+                slot.innerText = val;
+                slot.classList.add('filled');
+            }
+        }
+
+        function formatChemical(str) {
+            return str.replace(/(\d+)/g, '<sub>$1</sub>').replace(/\+/g, ' + ');
+        }
+
+        function resetCoefficients() {
+            document.querySelectorAll('.slot').forEach(s => fillSlot(s, null));
+        }
+
+        function skipQuestion() {
+            game.currentIdx++;
+            loadQuestion();
+        }
+
+        function updateUI() {
+            document.getElementById('q-number').innerText = `${game.currentIdx + 1}/${game.questions.length}`;
+            document.getElementById('q-score').innerText = game.score;
+            document.getElementById('total-checks').innerText = game.totalChecks;
+            document.getElementById('local-checks').innerText = game.localChecks;
+            document.getElementById('feedback').innerText = '';
+        }
+
+        /* ================= HỆ THỐNG KIỂM TRA HÓA HỌC ================= */
+        function checkResponse() {
+            game.totalChecks++;
+            game.localChecks++;
+            updateUI();
+
+            const slots = document.querySelectorAll('.slot');
+            const coeffs = Array.from(slots).map(s => parseInt(s.innerText) || 1);
+            const q = game.questions[game.currentIdx];
+            
+            let leftAtoms = {}, rightAtoms = {};
+            let cIdx = 0;
+
+            q.left.forEach(f => {
+                if(!f.includes('_dummy')) {
+                    const atoms = parseFormula(f);
+                    for(let a in atoms) leftAtoms[a] = (leftAtoms[a]||0) + atoms[a] * coeffs[cIdx];
+                    cIdx++;
+                }
+            });
+
+            q.right.forEach(f => {
+                if(!f.includes('_dummy')) {
+                    const atoms = parseFormula(f);
+                    for(let a in atoms) rightAtoms[a] = (rightAtoms[a]||0) + atoms[a] * coeffs[cIdx];
+                    cIdx++;
+                }
+            });
+
+            const fb = document.getElementById('feedback');
+            if (isBalanced(leftAtoms, rightAtoms)) {
+                fb.style.color = 'var(--success)';
+                fb.innerText = "Chính xác! Đã cộng 1 điểm.";
+                game.score++;
+                clearInterval(game.timer);
+                setTimeout(skipQuestion, 1500);
+            } else {
+                fb.style.color = 'var(--danger)';
+                fb.innerText = "Chưa đúng, hãy đếm lại số nguyên tử nhé!";
+            }
+        }
+
+        function parseFormula(f) {
+            let counts = {};
+            let stack = [{}];
+            let regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
+            let m;
+            while (m = regex.exec(f)) {
+                if (m[1]) {
+                    let name = m[1], num = parseInt(m[2]) || 1;
+                    stack[stack.length-1][name] = (stack[stack.length-1][name]||0) + num;
+                } else if (m[3]) { stack.push({}); }
+                else if (m[4]) {
+                    let top = stack.pop(), mult = parseInt(m[5]) || 1;
+                    for (let el in top) stack[stack.length-1][el] = (stack[stack.length-1][el]||0) + top[el] * mult;
+                }
+            }
+            return stack[0];
+        }
+
+        function isBalanced(l, r) {
+            const keys = new Set([...Object.keys(l), ...Object.keys(r)]);
+            for(let k of keys) if(l[k] !== r[k]) return false;
+            return true;
+        }
+
+        /* ================= MÀN HÌNH KẾT QUẢ & MÃ XÁC THỰC ================= */
+        function endGame() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.add('active');
+
+            const duration = Math.floor((Date.now() - game.startTime) / 1000);
+            const mins = Math.floor(duration / 60);
+            const secs = duration % 60;
+            const now = new Date();
+
+            // Tạo mã bài làm
+            const initials = game.studentName.split(' ').map(n => n[0]).join('').toUpperCase();
+            const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            const workCode = `${initials}-${game.studentClass.toUpperCase()}-${dateStr}-${rand}`;
+
+            // Tạo mã xác thực (Simple Hash)
+            const verifySeed = `${game.studentName}${game.score}${game.totalChecks}${duration}${workCode}`;
+            const verifyCode = Math.abs(verifySeed.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36).toUpperCase().slice(0,6);
+
+            document.getElementById('res-name').innerText = game.studentName;
+            document.getElementById('res-class').innerText = game.studentClass;
+            document.getElementById('res-score').innerText = `${game.score}/${game.questions.length}`;
+            document.getElementById('res-checks').innerText = game.totalChecks;
+            document.getElementById('res-time').innerText = `${mins} phút ${secs} giây`;
+            document.getElementById('res-date').innerText = now.toLocaleString('vi-VN');
+            document.getElementById('res-code').innerText = workCode;
+            document.getElementById('res-verify').innerText = verifyCode;
+
+            if (game.score >= 16) {
+                startFireworks();
+                alert("Xuất sắc! Em đã hoàn thành rất tốt!");
+            }
+        }
+
+        function startFireworks() {
+            const container = document.getElementById('firework-container');
+            for(let i=0; i<30; i++) {
+                const f = document.createElement('div');
+                f.style.position = 'absolute';
+                f.style.left = Math.random() * 100 + '%';
+                f.style.top = Math.random() * 100 + '%';
+                f.style.width = '5px';
+                f.style.height = '5px';
+                f.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+                f.style.borderRadius = '50%';
+                f.style.boxShadow = `0 0 10px white`;
+                container.appendChild(f);
+                
+                let speedX = (Math.random()-0.5) * 10;
+                let speedY = (Math.random()-0.5) * 10;
+                let opacity = 1;
+
+                const animate = () => {
+                    f.style.left = (parseFloat(f.style.left) + speedX/10) + '%';
+                    f.style.top = (parseFloat(f.style.top) + speedY/10) + '%';
+                    opacity -= 0.01;
+                    f.style.opacity = opacity;
+                    if(opacity > 0) requestAnimationFrame(animate);
+                    else f.remove();
+                };
+                animate();
+            }
+        }
+    </script>
+</body>
+</html>
