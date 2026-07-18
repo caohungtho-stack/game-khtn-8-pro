@@ -3046,6 +3046,8 @@ const STORAGE_LEADERBOARD = "khtn8_pro_leaderboard_v1";
 const STORAGE_LEADERBOARD_SESSIONS = "khtn8_pro_leaderboard_sessions_v1";
 const STORAGE_LEADERBOARD_GUARD = "khtn8_pro_leaderboard_guard_v1";
 const STORAGE_LEADERBOARD_WEBAPP_URL = "khtn8_pro_leaderboard_webapp_url_v1";
+const STORAGE_LEADERBOARD_PENDING = "khtn8_pro_leaderboard_pending_v2";
+const STORAGE_LEADERBOARD_LAST_SYNC = "khtn8_pro_leaderboard_last_sync_v2";
 const LEADERBOARD_CONFIG = {
   spreadsheetId: "10vLBKvpnGpKLnaX2k6Gh4rhqUYnlBBzXBwheRcoTuMM",
   sheetGid: "0",
@@ -3601,6 +3603,60 @@ function getLocalLeaderboard() {
   return mergeLeaderboardEntries(rows || []);
 }
 
+
+function getPendingLeaderboardEntries() {
+  try {
+    const rows = readJSONStorage(STORAGE_LEADERBOARD_PENDING, []);
+    return Array.isArray(rows) ? rows.map(normalizeLeaderboardEntry) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function savePendingLeaderboardEntries(rows) {
+  const cleanRows = (Array.isArray(rows) ? rows : [])
+    .map(normalizeLeaderboardEntry)
+    .filter(item => item.name && item.className && item.sessionCode)
+    .slice(-100);
+  try { writeJSONStorage(STORAGE_LEADERBOARD_PENDING, cleanRows); } catch (error) {}
+  return cleanRows;
+}
+
+function queuePendingLeaderboardEntry(entry) {
+  const clean = normalizeLeaderboardEntry(entry);
+  if (!clean.sessionCode) return getPendingLeaderboardEntries();
+  const rows = getPendingLeaderboardEntries()
+    .filter(item => item.sessionCode !== clean.sessionCode);
+  rows.push(clean);
+  return savePendingLeaderboardEntries(rows);
+}
+
+function removePendingLeaderboardEntry(sessionCode) {
+  if (!sessionCode) return getPendingLeaderboardEntries();
+  return savePendingLeaderboardEntries(
+    getPendingLeaderboardEntries().filter(item => item.sessionCode !== sessionCode)
+  );
+}
+
+function renderLeaderboardEverywhere(rows) {
+  const cleanRows = mergeLeaderboardEntries(Array.isArray(rows) ? rows : []);
+  leaderboardCache = cleanRows;
+  renderLeaderboardList("leaderboard-list-start", cleanRows);
+  renderLeaderboardList("leaderboard-list-result", cleanRows);
+  renderLeaderboardList("leaderboard-list-page", cleanRows);
+  return cleanRows;
+}
+
+function getLeaderboardRowsIncludingLocal(onlineRows = []) {
+  // Luôn ghép điểm vừa lưu trên thiết bị với dữ liệu online. Điều này đặc biệt
+  // quan trọng trên điện thoại vì Google Sheets có thể chậm cập nhật vài giây.
+  return mergeLeaderboardEntries([
+    ...(Array.isArray(onlineRows) ? onlineRows : []),
+    ...getLocalLeaderboard(),
+    ...getPendingLeaderboardEntries()
+  ]);
+}
+
 function saveLocalLeaderboardEntry(entry) {
   const clean = normalizeLeaderboardEntry(entry);
   leaderboardMemoryStore = (leaderboardMemoryStore || [])
@@ -3610,84 +3666,136 @@ function saveLocalLeaderboardEntry(entry) {
   let rows = [];
   try {
     rows = readJSONStorage(STORAGE_LEADERBOARD, []);
-  } catch (e) {
+  } catch (error) {
     rows = leaderboardMemoryStore.slice();
   }
-  rows = (rows || []).filter((item) => normalizeLeaderboardEntry(item).sessionCode !== clean.sessionCode);
+  rows = (Array.isArray(rows) ? rows : [])
+    .filter((item) => normalizeLeaderboardEntry(item).sessionCode !== clean.sessionCode);
   rows.push(clean);
+
   try {
     writeJSONStorage(STORAGE_LEADERBOARD, rows);
-  } catch (e) {
+  } catch (error) {
     leaderboardMemoryStore = rows.slice();
   }
-  if (shouldDisplayLocalLeaderboardFallback()) {
-    leaderboardCache = mergeLeaderboardEntries(rows);
-    renderLeaderboardList("leaderboard-list-start", leaderboardCache);
-    renderLeaderboardList("leaderboard-list-result", leaderboardCache);
-    renderLeaderboardList("leaderboard-list-page", leaderboardCache);
-  }
+
+  // Không chờ Google Sheets: cập nhật bảng trên điện thoại ngay lập tức.
+  const visibleRows = getLeaderboardRowsIncludingLocal(leaderboardCache);
+  renderLeaderboardEverywhere(visibleRows);
+  return clean;
 }
 
 async function saveLeaderboardOnline(entry) {
-  if (!isOnlineLeaderboardWriteEnabled()) return { ok:false, mode:"local", message:"disabled" };
+  if (!isOnlineLeaderboardWriteEnabled()) {
+    return { ok:false, mode:"local", message:"missing_webapp_url", needsConfiguration:true };
+  }
+
   const cleanEntry = normalizeLeaderboardEntry(entry);
   const url = getLeaderboardWebAppUrl();
+  const jsonBody = JSON.stringify({ action:"save", entry:cleanEntry });
+  const formBody = new URLSearchParams({
+    action:"save",
+    entry:JSON.stringify(cleanEntry)
+  }).toString();
+
+  // Hai cách đầu có phản hồi xác nhận. Cách no-cors và sendBeacon dành riêng
+  // cho Safari/iOS hoặc trình duyệt nhúng chặn CORS/redirect của Apps Script.
   const attempts = [
     {
-      label: "json_plain",
-      init: {
-        method: "POST",
-        mode: "cors",
-        cache: "no-store",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action:"save", entry: cleanEntry })
-      }
+      label:"json_plain_cors",
+      init:{
+        method:"POST", mode:"cors", cache:"no-store", redirect:"follow",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:jsonBody
+      },
+      opaqueAccepted:false
     },
     {
-      label: "form_urlencoded",
-      init: {
-        method: "POST",
-        mode: "cors",
-        cache: "no-store",
-        redirect: "follow",
-        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body: new URLSearchParams({
-          action: "save",
-          entry: JSON.stringify(cleanEntry)
-        }).toString()
-      }
+      label:"form_urlencoded_cors",
+      init:{
+        method:"POST", mode:"cors", cache:"no-store", redirect:"follow",
+        headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
+        body:formBody
+      },
+      opaqueAccepted:false
+    },
+    {
+      label:"text_plain_no_cors_mobile",
+      init:{
+        method:"POST", mode:"no-cors", cache:"no-store", redirect:"follow",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body:jsonBody,
+        keepalive:true
+      },
+      opaqueAccepted:true
     }
   ];
 
   let lastResult = { ok:false, mode:"online", message:"save_failed" };
   for (const attempt of attempts) {
     try {
-      const response = await fetchWithTimeout(url, attempt.init);
+      const response = await fetchWithTimeout(url, attempt.init, 7000);
+      if (attempt.opaqueAccepted && response.type === "opaque") {
+        return {
+          ok:true,
+          mode:"online",
+          transport:attempt.label,
+          verified:false,
+          message:"accepted_without_readable_response"
+        };
+      }
+
       const text = await response.text();
       let data = {};
-      try { data = JSON.parse(text || '{}'); } catch (e) {}
+      try { data = JSON.parse(text || "{}"); } catch (error) {}
       const ok = !!(response.ok && data?.ok !== false);
       lastResult = {
         ok,
         mode:"online",
-        transport: attempt.label,
+        transport:attempt.label,
+        verified:true,
         text,
         data,
-        status: response.status,
-        message: data?.message || (ok ? "ok" : `save_failed_${attempt.label}`)
+        status:response.status,
+        message:data?.message || (ok ? "ok" : `save_failed_${attempt.label}`)
       };
       if (ok) return lastResult;
     } catch (error) {
       lastResult = {
         ok:false,
         mode:"online",
-        transport: attempt.label,
+        transport:attempt.label,
         error,
-        message: String(error?.message || "network_error")
+        message:String(error?.message || "network_error")
       };
     }
   }
+
+  // Fallback cuối cho điện thoại: gửi nền ngay cả khi trang chuyển màn hình.
+  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+    try {
+      const payload = new Blob([jsonBody], { type:"text/plain;charset=utf-8" });
+      const accepted = navigator.sendBeacon(url, payload);
+      if (accepted) {
+        return {
+          ok:true,
+          mode:"online",
+          transport:"sendBeacon_mobile",
+          verified:false,
+          message:"beacon_queued"
+        };
+      }
+    } catch (error) {
+      lastResult = {
+        ok:false,
+        mode:"online",
+        transport:"sendBeacon_mobile",
+        error,
+        message:String(error?.message || "beacon_failed")
+      };
+    }
+  }
+
   return lastResult;
 }
 
@@ -3947,51 +4055,57 @@ function updateLeaderboardNote(message) {
 
 async function refreshLeaderboard() {
   const localRows = getLocalLeaderboard();
-  let rows = [];
+  const pendingRows = getPendingLeaderboardEntries();
+  let rows = getLeaderboardRowsIncludingLocal([]);
+
+  // Hiển thị ngay dữ liệu trên thiết bị trước khi gọi mạng.
+  renderLeaderboardEverywhere(rows);
 
   if (isOnlineLeaderboardEnabled()) {
     updateLeaderboardStatus("Đang tải bảng xếp hạng trực tuyến từ Google Sheets...");
-    updateLeaderboardNote("Bảng xếp hạng chung chỉ dùng dữ liệu tải trực tiếp từ Google Sheets; dữ liệu LocalStorage không được trộn vào bảng online.");
-
-    ["leaderboard-list-start", "leaderboard-list-result", "leaderboard-list-page"].forEach((id) => {
-      const box = document.getElementById(id);
-      if (box) box.innerHTML = `<div class="leaderboard-note">⏳ Đang tải dữ liệu bảng xếp hạng trực tuyến...</div>`;
-    });
+    updateLeaderboardNote(
+      pendingRows.length
+        ? `Điểm trên thiết bị đã hiện ngay. Đang chờ đồng bộ ${pendingRows.length} lượt lên bảng online.`
+        : "Điểm trên thiết bị sẽ được hiển thị ngay trong lúc Google Sheets đang tải."
+    );
 
     const onlineRows = await fetchLeaderboardOnline();
+    rows = getLeaderboardRowsIncludingLocal(
+      leaderboardOnlineState.connected && Array.isArray(onlineRows) ? onlineRows : []
+    );
 
     if (leaderboardOnlineState.connected) {
-      // Chỉ chuẩn hóa, khử trùng lặp và sắp xếp chính dữ liệu Google Sheets.
-      // Không đưa bất kỳ dữ liệu LocalStorage nào vào nhánh online này.
-      rows = mergeLeaderboardEntries(Array.isArray(onlineRows) ? onlineRows : []);
-
-      if (rows.length) {
-        updateLeaderboardStatus("Đang hiển thị bảng xếp hạng trực tuyến từ Google Sheets.");
-        updateLeaderboardNote("Dữ liệu đang hiển thị 100% từ Google Sheets. Điểm lưu trên máy chỉ dùng làm dự phòng khi mất kết nối.");
-      } else {
-        updateLeaderboardStatus("Đã kết nối Google Sheets nhưng chưa có dữ liệu hợp lệ.");
-        updateLeaderboardNote("Bảng online đang được ưu tiên hoàn toàn; dữ liệu LocalStorage không được chèn vào khi kết nối Sheets thành công.");
-      }
+      updateLeaderboardStatus(
+        pendingRows.length
+          ? `Đã tải bảng online; còn ${pendingRows.length} lượt đang chờ xác nhận đồng bộ.`
+          : "Đã cập nhật bảng xếp hạng trên thiết bị và dữ liệu online."
+      );
+      updateLeaderboardNote(
+        "Bảng đang ghép dữ liệu Google Sheets với điểm mới nhất trên thiết bị để điện thoại không phải chờ bộ nhớ đệm của Google."
+      );
+    } else if (localRows.length) {
+      updateLeaderboardStatus("Chưa kết nối được Google Sheets, đang hiển thị dữ liệu đã lưu trên thiết bị.");
+      updateLeaderboardNote("Điểm không bị mất. Game sẽ tự thử đồng bộ lại khi mạng hoạt động.");
     } else {
-      rows = localRows;
-      if (localRows.length) {
-        updateLeaderboardStatus("Không kết nối được Google Sheets, đang hiển thị tạm dữ liệu trên máy này.");
-        updateLeaderboardNote("Đây chỉ là bảng dự phòng LocalStorage. Khi mạng hoạt động trở lại, dữ liệu Google Sheets sẽ thay thế hoàn toàn và không bị trộn với dữ liệu máy.");
-      } else {
-        updateLeaderboardStatus("Không kết nối được Google Sheets và máy này chưa có dữ liệu dự phòng.");
-        updateLeaderboardNote("Hãy kiểm tra kết nối mạng hoặc quyền xem bảng tính, sau đó bấm Làm mới bảng.");
-      }
+      updateLeaderboardStatus("Chưa có dữ liệu bảng xếp hạng trên thiết bị.");
+      updateLeaderboardNote("Hãy hoàn thành một lượt chơi rồi mở lại Bảng xếp hạng.");
     }
   } else {
-    rows = localRows;
-    updateLeaderboardStatus("Kết nối online chưa được cấu hình, đang dùng dữ liệu trên máy này.");
-    updateLeaderboardNote("LocalStorage đang hoạt động ở chế độ dự phòng và không được coi là dữ liệu bảng xếp hạng chung.");
+    rows = getLeaderboardRowsIncludingLocal([]);
+    updateLeaderboardStatus("Đã cập nhật bảng xếp hạng trên thiết bị này.");
+    updateLeaderboardNote(
+      isOnlineLeaderboardWriteEnabled()
+        ? "Kênh ghi online đã có; dữ liệu sẽ tự đồng bộ khi có mạng."
+        : "Chưa có link Apps Script trên thiết bị này. Điểm vẫn được lưu và hiển thị cục bộ."
+    );
   }
 
-  leaderboardCache = rows;
-  renderLeaderboardList("leaderboard-list-start", rows);
-  renderLeaderboardList("leaderboard-list-result", rows);
-  renderLeaderboardList("leaderboard-list-page", rows);
+  try { localStorage.setItem(STORAGE_LEADERBOARD_LAST_SYNC, new Date().toISOString()); } catch (error) {}
+  renderLeaderboardEverywhere(rows);
+  if (typeof window.sizeClassicLeaderboardToFive === "function") {
+    requestAnimationFrame(() => window.sizeClassicLeaderboardToFive());
+  }
+  return rows;
 }
 
 function buildLeaderboardEntry(profile, percent, total) {
@@ -4015,29 +4129,75 @@ async function publishLeaderboardEntry(profile, percent, total) {
   const entry = buildLeaderboardEntry(profile, percent, total);
   const gate = canPublishLeaderboardEntry(entry);
   const cleanEntry = gate.entry || entry;
+
+  // Luôn lưu và dựng bảng ngay, kể cả khi dữ liệu chưa đủ điều kiện gửi online.
+  saveLocalLeaderboardEntry(cleanEntry);
+
   if (!gate.ok) {
-    updateLeaderboardStatus(gate.message || "Lượt chơi chưa được đưa vào bảng xếp hạng.");
-    saveLocalLeaderboardEntry(cleanEntry);
-    await refreshLeaderboard();
-    return;
+    updateLeaderboardStatus(gate.message || "Thành tích đã lưu trên thiết bị nhưng chưa gửi online.");
+    renderLeaderboardEverywhere(getLeaderboardRowsIncludingLocal(leaderboardCache));
+    return { ok:false, local:true, message:gate.message || "validation_failed" };
   }
 
-  saveLocalLeaderboardEntry(cleanEntry);
   rememberRecentSubmission(cleanEntry);
+
+  if (!isOnlineLeaderboardWriteEnabled()) {
+    updateLeaderboardStatus("Đã cập nhật bảng trên điện thoại. Chưa có link ghi Google Sheets trên thiết bị này.");
+    updateLeaderboardNote("Điểm mới vẫn được giữ trên máy. Để đồng bộ chung với máy tính, hãy cấu hình cùng link Apps Script Web App.");
+    return { ok:true, local:true, synced:false, message:"missing_webapp_url" };
+  }
+
+  queuePendingLeaderboardEntry(cleanEntry);
+  updateLeaderboardStatus("Đã cập nhật trên thiết bị. Đang đồng bộ bảng online...");
 
   const result = await saveLeaderboardOnline(cleanEntry);
   if (result.ok) {
+    removePendingLeaderboardEntry(cleanEntry.sessionCode);
     markSessionPublished(cleanEntry.sessionCode);
-    updateLeaderboardStatus("Đã cập nhật bảng thành tích online thành công.");
-    updateLeaderboardNote("Điểm vừa chơi đã được lưu trên máy này và đồng bộ lên Google Sheets.");
-  } else if (isOnlineLeaderboardWriteEnabled()) {
-    console.error("Leaderboard online save failed:", result);
-    updateLeaderboardStatus("Đã lưu trên máy này. Bảng online chưa cập nhật được.");
-    updateLeaderboardNote(`Lỗi online: ${String(result?.message || result?.data?.message || result?.status || "Khong xac dinh")} • Kênh gửi: ${String(result?.transport || "unknown")}`);
+    updateLeaderboardStatus(
+      result.verified === false
+        ? "Điểm đã được điện thoại gửi lên hệ thống; đang chờ Google Sheets cập nhật."
+        : "Đã cập nhật bảng thành tích online thành công."
+    );
+    updateLeaderboardNote(
+      result.verified === false
+        ? `Kênh gửi tương thích điện thoại: ${result.transport}. Điểm vẫn hiển thị ngay trên thiết bị trong lúc chờ Sheets.`
+        : "Điểm vừa chơi đã được lưu trên thiết bị và đồng bộ lên Google Sheets."
+    );
+
+    // Google Sheets/GViz có thể lưu cache; làm mới sau một khoảng ngắn nhưng
+    // không xóa điểm cục bộ khỏi màn hình trong thời gian chờ.
+    setTimeout(() => {
+      refreshLeaderboard().catch(error => console.warn("[BXH] Làm mới sau đồng bộ thất bại:", error));
+    }, 1300);
   } else {
-    updateLeaderboardStatus("Đã lưu thành tích trên máy này.");
+    queuePendingLeaderboardEntry(cleanEntry);
+    updateLeaderboardStatus("Đã cập nhật trên điện thoại; đồng bộ online đang chờ thử lại.");
+    updateLeaderboardNote(`Lỗi online tạm thời: ${String(result?.message || "network_error")}. Game sẽ tự gửi lại khi có mạng.`);
   }
-  await refreshLeaderboard();
+
+  renderLeaderboardEverywhere(getLeaderboardRowsIncludingLocal(leaderboardCache));
+  return { ...result, local:true };
+}
+
+async function retryPendingLeaderboardSync() {
+  if (!isOnlineLeaderboardWriteEnabled() || !navigator.onLine) return { sent:0, remaining:getPendingLeaderboardEntries().length };
+  const queue = getPendingLeaderboardEntries();
+  let sent = 0;
+
+  for (const entry of queue.slice(0, 12)) {
+    const result = await saveLeaderboardOnline(entry);
+    if (!result.ok) break;
+    removePendingLeaderboardEntry(entry.sessionCode);
+    markSessionPublished(entry.sessionCode);
+    sent += 1;
+  }
+
+  if (sent > 0) {
+    updateLeaderboardStatus(`Đã đồng bộ lại ${sent} lượt từ điện thoại.`);
+    setTimeout(() => refreshLeaderboard().catch(() => {}), 1000);
+  }
+  return { sent, remaining:getPendingLeaderboardEntries().length };
 }
 
 function configureLeaderboardWebApp() {
@@ -13310,6 +13470,52 @@ button, input, select, textarea { max-width: 100%; }
   } else {
     initialize();
   }
+})();
+</script>
+
+
+<script id="khtn8-mobile-leaderboard-sync-v6">
+(() => {
+  if (window.__khtn8MobileLeaderboardSyncV6) return;
+  window.__khtn8MobileLeaderboardSyncV6 = true;
+
+  let retryTimer = 0;
+  const scheduleRetry = (delay = 350) => {
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(() => {
+      if (typeof retryPendingLeaderboardSync === "function") {
+        retryPendingLeaderboardSync().catch(error => console.warn("[BXH mobile] Retry failed:", error));
+      }
+    }, delay);
+  };
+
+  window.addEventListener("online", () => scheduleRetry(150), { passive:true });
+  window.addEventListener("pageshow", () => scheduleRetry(500), { passive:true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") scheduleRetry(300);
+  });
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("button, [role='button']");
+    if (!button) return;
+    const label = String(button.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+    if (label.includes("bảng xếp hạng") || label === "bxh" || label.includes("xếp hạng")) {
+      // Dựng dữ liệu local ngay trong cùng thao tác chạm của người dùng;
+      // việc gọi mạng chạy sau để Safari không làm giao diện bị đứng.
+      try {
+        if (typeof getLeaderboardRowsIncludingLocal === "function" && typeof renderLeaderboardEverywhere === "function") {
+          renderLeaderboardEverywhere(getLeaderboardRowsIncludingLocal(
+            typeof leaderboardCache !== "undefined" ? leaderboardCache : []
+          ));
+        }
+      } catch (error) {
+        console.warn("[BXH mobile] Local render failed:", error);
+      }
+      scheduleRetry(700);
+    }
+  }, true);
+
+  scheduleRetry(900);
 })();
 </script>
 
