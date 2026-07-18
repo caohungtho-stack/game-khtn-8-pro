@@ -7959,7 +7959,7 @@ if (studentClassInput) {
       setText('res-badge', `🎖️ Huy hiệu: ${badge}`);
       setText('res-near-box', buildNearMessage(percent, total, gameState.score));
       const recordText = isNewRecord
-        ? `🎉 Kỷ lục mới của chủ đề ${gameState.topic}: ${percent}% • ${baseXP} XP trong trận đã gồm hệ số ${modeMeta.label} x${modeMultiplier.toFixed(1)}; sau tinh thông x${masteryMultiplier.toFixed(1)} = ${finalXP} XP`
+        ? `🎉 Kỷ lục mới của chủ đề ${gameState.topic}: ${percent}% • ${questionXP} XP câu đúng đã gồm hệ số ${modeMeta.label} x${modeMultiplier.toFixed(1)}; sau thưởng và tinh thông nhận ${finalXP} XP`
         : `📌 Kỷ lục chủ đề hiện tại: ${topicStats.bestPercent}% | Lượt này: ${percent}% • Hệ số tinh thông hiện tại: ${masteryBadge(getTopicMasteryMultiplier(topicStats))}`;
       setText('res-record-box', recordText + (recovery ? ` • Hồi phục: ${recovery.previousTopic} còn ${recovery.after} lượt.` : ''));
       renderXpBreakdown(questionXP, completionBonus, modeMultiplier, masteryMultiplier, finalXP, modeMeta.label);
@@ -8211,11 +8211,11 @@ if (studentClassInput) {
     nav.className = 'mobile-bottom-nav';
     nav.setAttribute('aria-label', 'Điều hướng nhanh trên điện thoại');
     nav.innerHTML = `
-      <button type="button" onclick="goHome()">🏠<span>Nhà</span></button>
-      <button type="button" onclick="startSelectedMode()">🎮<span>Chơi</span></button>
+      <button type="button" data-mobile-nav="home">🏠<span>Nhà</span></button>
+      <button type="button" data-mobile-nav="titles">🏅<span>Danh hiệu</span></button>
       <button type="button" onclick="openTopicMapModal()">🗺️<span>Chủ đề</span></button>
       <button type="button" onclick="openInventoryModal()">🎒<span>Túi</span></button>
-      <button type="button" onclick="openAdaptiveLeaderboard()">🏆<span>BXH</span></button>
+      <button type="button" data-mobile-nav="leaderboard">🏆<span>BXH</span></button>
     `;
     document.body.appendChild(nav);
   }
@@ -12408,6 +12408,546 @@ button, input, select, textarea { max-width: 100%; }
 })();
 </script>
 <!-- KHTN8_LEADERBOARD_TOP5_MODAL_V2_END -->
+
+
+
+<!-- KHTN8_MOBILE_TITLES_GIFT_STANDALONE_BXH_V3_START -->
+<style id="khtn8-mobile-titles-gift-bxh-v3-style">
+  /* ===== BẢNG XẾP HẠNG ĐỘC LẬP ===== */
+  #khtn8-standalone-bxh {
+    position: fixed;
+    inset: 0;
+    z-index: 12050;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    background: rgba(15,23,42,.66);
+    backdrop-filter: blur(7px);
+  }
+  #khtn8-standalone-bxh.active { display: flex; }
+  #khtn8-standalone-bxh .khtn8-bxh-dialog {
+    width: min(920px, 100%);
+    max-height: min(92dvh, 820px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1.5px solid #fde68a;
+    border-radius: 24px;
+    background: linear-gradient(145deg,#fffdf2,#fff 55%,#eff6ff);
+    box-shadow: 0 30px 90px rgba(15,23,42,.38);
+  }
+  #khtn8-standalone-bxh .khtn8-bxh-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg,#fff7ed,#eff6ff);
+  }
+  #khtn8-standalone-bxh .khtn8-bxh-title {
+    color: #92400e;
+    font-size: 1.05rem;
+    font-weight: 900;
+  }
+  #khtn8-standalone-bxh .khtn8-bxh-status {
+    margin-top: 3px;
+    color: #64748b;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+  #khtn8-standalone-bxh .khtn8-bxh-close {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    background: linear-gradient(135deg,#ef4444,#f97316);
+    font-weight: 900;
+    cursor: pointer;
+  }
+  #khtn8-standalone-bxh-list {
+    display: grid;
+    gap: 7px;
+    height: var(--khtn8-bxh-five-height, min(62dvh, 460px));
+    max-height: min(68dvh, 540px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 10px 12px 14px;
+    scroll-behavior: smooth;
+  }
+  #khtn8-standalone-bxh-list .leaderboard-summary { margin: 0 0 2px; }
+  #khtn8-standalone-bxh-list .leaderboard-row:not(.head) { margin: 0; }
+
+  /* ===== HỘP QUÀ PERFECT ===== */
+  #khtn8-perfect-gift-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 12100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    background: rgba(15,23,42,.72);
+    backdrop-filter: blur(8px);
+  }
+  #khtn8-perfect-gift-overlay.active { display: flex; }
+  #khtn8-perfect-gift-overlay .perfect-gift-card {
+    width: min(440px, 100%);
+    padding: 22px 18px 18px;
+    border: 2px solid #fbbf24;
+    border-radius: 28px;
+    background: radial-gradient(circle at 50% 0%,#fef3c7,#fff 48%,#eff6ff);
+    box-shadow: 0 32px 90px rgba(15,23,42,.42);
+    text-align: center;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-badge {
+    display: inline-flex;
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: #92400e;
+    background: #fef3c7;
+    font-size: .78rem;
+    font-weight: 900;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-title {
+    margin-top: 10px;
+    color: #7c2d12;
+    font-size: 1.35rem;
+    font-weight: 900;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-sub {
+    margin: 7px auto 12px;
+    max-width: 340px;
+    color: #475569;
+    font-size: .88rem;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-box {
+    width: 150px;
+    height: 150px;
+    margin: 2px auto 12px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    font-size: 7rem;
+    line-height: 1;
+    cursor: pointer;
+    filter: drop-shadow(0 18px 18px rgba(146,64,14,.22));
+    animation: khtn8GiftFloat 1.35s ease-in-out infinite;
+  }
+  #khtn8-perfect-gift-overlay.opening .perfect-gift-box {
+    animation: khtn8GiftOpen .65s ease forwards;
+    pointer-events: none;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-actions {
+    display: grid;
+    gap: 8px;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-open,
+  #khtn8-perfect-gift-overlay .perfect-gift-close {
+    min-height: 46px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 15px;
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+  }
+  #khtn8-perfect-gift-overlay .perfect-gift-open { background: linear-gradient(135deg,#f59e0b,#ea580c); }
+  #khtn8-perfect-gift-overlay .perfect-gift-close { background: linear-gradient(135deg,#64748b,#334155); }
+  @keyframes khtn8GiftFloat {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+  }
+  @keyframes khtn8GiftOpen {
+    0% { transform: scale(1) rotate(0); }
+    35% { transform: scale(1.16) rotate(-8deg); }
+    70% { transform: scale(.92) rotate(8deg); }
+    100% { transform: scale(1.05) rotate(0); opacity: .15; }
+  }
+
+  @media (max-width: 768px) {
+    #khtn8-standalone-bxh { align-items: flex-end; padding: 8px; }
+    #khtn8-standalone-bxh .khtn8-bxh-dialog {
+      width: 100%;
+      max-height: calc(100dvh - 16px);
+      border-radius: 23px 23px 16px 16px;
+    }
+    #khtn8-standalone-bxh .khtn8-bxh-head { padding: 11px 12px; }
+    #khtn8-standalone-bxh .khtn8-bxh-title { font-size: .96rem; }
+    #khtn8-standalone-bxh .khtn8-bxh-status { font-size: .67rem; }
+    #khtn8-standalone-bxh-list { padding: 8px; gap: 6px; max-height: 70dvh; }
+    #khtn8-standalone-bxh-list .leaderboard-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    #khtn8-standalone-bxh-list .leaderboard-summary-chip {
+      padding: 6px 7px;
+      font-size: .64rem;
+    }
+    #khtn8-standalone-bxh-list .leaderboard-row.head { display: none !important; }
+    #khtn8-standalone-bxh-list .leaderboard-row:not(.head) {
+      display: grid !important;
+      grid-template-columns: 43px minmax(0,1fr) auto auto !important;
+      align-items: center !important;
+      gap: 6px !important;
+      min-height: 59px;
+      padding: 7px !important;
+      border-radius: 13px !important;
+    }
+    #khtn8-standalone-bxh-list .leaderboard-rank { margin: 0 !important; gap: 3px; font-size: .78rem; }
+    #khtn8-standalone-bxh-list .leaderboard-rank-icon { width: 24px; height: 24px; font-size: .86rem; }
+    #khtn8-standalone-bxh-list .leaderboard-player-name { font-size: .77rem; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+    #khtn8-standalone-bxh-list .leaderboard-meta { font-size: .59rem; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+    #khtn8-standalone-bxh-list .leaderboard-topic-cell,
+    #khtn8-standalone-bxh-list .leaderboard-mode-cell,
+    #khtn8-standalone-bxh-list .leaderboard-inline-meta { display: none !important; }
+    #khtn8-standalone-bxh-list .leaderboard-pill { margin: 0 !important; padding: 4px 5px; font-size: .62rem; white-space: nowrap; }
+    #khtn8-perfect-gift-overlay .perfect-gift-card { padding: 18px 14px 14px; }
+    #khtn8-perfect-gift-overlay .perfect-gift-box { width: 130px; height: 130px; font-size: 6.2rem; }
+  }
+</style>
+<script id="khtn8-mobile-titles-gift-bxh-v3-script">
+(() => {
+  "use strict";
+
+  let bxhRefreshId = 0;
+  let giftBusy = false;
+
+  function currentGameState() {
+    try {
+      if (typeof gameState !== "undefined" && gameState) return gameState;
+    } catch (_) {}
+    return window.gameState || null;
+  }
+
+  function safeRows() {
+    try {
+      if (typeof window.getLeaderboardRowsForCurrentSource === "function") {
+        const rows = window.getLeaderboardRowsForCurrentSource();
+        if (Array.isArray(rows)) return rows;
+      }
+    } catch (_) {}
+    try {
+      if (typeof window.getLocalLeaderboard === "function") {
+        const rows = window.getLocalLeaderboard();
+        if (Array.isArray(rows)) return rows;
+      }
+    } catch (_) {}
+    try {
+      if (typeof leaderboardCache !== "undefined" && Array.isArray(leaderboardCache)) {
+        return leaderboardCache.slice();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  function ensureStandaloneBXH() {
+    let overlay = document.getElementById("khtn8-standalone-bxh");
+    if (overlay) return overlay;
+
+    overlay = document.createElement("div");
+    overlay.id = "khtn8-standalone-bxh";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML = `
+      <section class="khtn8-bxh-dialog" role="dialog" aria-modal="true" aria-labelledby="khtn8-bxh-title">
+        <header class="khtn8-bxh-head">
+          <div>
+            <div id="khtn8-bxh-title" class="khtn8-bxh-title">🏆 Bảng xếp hạng người chơi</div>
+            <div id="khtn8-bxh-status" class="khtn8-bxh-status">Hiển thị 5 người dẫn đầu • cuộn xuống để xem thêm</div>
+          </div>
+          <button class="khtn8-bxh-close" type="button">Đóng</button>
+        </header>
+        <div id="khtn8-standalone-bxh-list" class="leaderboard-list" tabindex="0"></div>
+      </section>`;
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeStandaloneLeaderboard();
+    });
+    overlay.querySelector(".khtn8-bxh-close")?.addEventListener("click", closeStandaloneLeaderboard);
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function sizeBXHToFive() {
+    const list = document.getElementById("khtn8-standalone-bxh-list");
+    if (!list) return;
+    requestAnimationFrame(() => {
+      const rows = Array.from(list.querySelectorAll(".leaderboard-row:not(.head)"));
+      if (!rows.length) {
+        list.style.setProperty("--khtn8-bxh-five-height", "260px");
+        return;
+      }
+      const fifth = rows[Math.min(4, rows.length - 1)];
+      const desired = Math.ceil(fifth.offsetTop + fifth.offsetHeight + 8);
+      const viewport = window.visualViewport?.height || window.innerHeight || 760;
+      const limit = Math.max(260, Math.floor(viewport * .68));
+      list.style.setProperty("--khtn8-bxh-five-height", `${Math.min(desired, limit)}px`);
+      list.scrollTop = 0;
+    });
+  }
+
+  function renderStandaloneRows(message) {
+    const list = document.getElementById("khtn8-standalone-bxh-list");
+    const status = document.getElementById("khtn8-bxh-status");
+    if (!list) return;
+    const rows = safeRows();
+    try {
+      if (typeof window.renderLeaderboardList === "function") {
+        window.renderLeaderboardList(list.id, rows);
+      } else {
+        list.innerHTML = `<div class="leaderboard-note">Chưa thể dựng bảng xếp hạng.</div>`;
+      }
+    } catch (error) {
+      console.warn("[BXH riêng] Không thể dựng dữ liệu:", error);
+      list.innerHTML = `<div class="leaderboard-note">Không thể hiển thị bảng xếp hạng lúc này.</div>`;
+    }
+    if (status) status.textContent = message || `Hiển thị 5 người dẫn đầu • tổng ${rows.length} người • cuộn xuống để xem thêm`;
+    sizeBXHToFive();
+  }
+
+  async function refreshStandaloneRows() {
+    const requestId = ++bxhRefreshId;
+    renderStandaloneRows("Đang hiển thị dữ liệu trên máy và kiểm tra bảng online...");
+    if (typeof window.refreshLeaderboard !== "function") return;
+
+    try {
+      const timeout = new Promise((resolve) => setTimeout(() => resolve("timeout"), 4500));
+      const result = await Promise.race([Promise.resolve().then(() => window.refreshLeaderboard()), timeout]);
+      if (requestId !== bxhRefreshId) return;
+      renderStandaloneRows(result === "timeout"
+        ? "Mạng phản hồi chậm • đang hiển thị dữ liệu trên máy"
+        : "Đã cập nhật bảng xếp hạng • cuộn xuống để xem thêm");
+    } catch (error) {
+      console.warn("[BXH riêng] Làm mới thất bại:", error);
+      if (requestId === bxhRefreshId) renderStandaloneRows("Không tải được bảng online • đang hiển thị dữ liệu trên máy");
+    }
+  }
+
+  function openStandaloneLeaderboard(event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    event?.stopImmediatePropagation?.();
+
+    const overlay = ensureStandaloneBXH();
+    overlay.classList.add("active");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    renderStandaloneRows();
+    overlay.querySelector(".khtn8-bxh-close")?.focus?.({ preventScroll: true });
+    refreshStandaloneRows();
+    return false;
+  }
+
+  function closeStandaloneLeaderboard() {
+    bxhRefreshId += 1;
+    const overlay = document.getElementById("khtn8-standalone-bxh");
+    overlay?.classList.remove("active");
+    overlay?.setAttribute("aria-hidden", "true");
+    document.body.style.removeProperty("overflow");
+  }
+
+  window.openStandaloneLeaderboard = openStandaloneLeaderboard;
+  window.closeStandaloneLeaderboard = closeStandaloneLeaderboard;
+  // Mọi lời gọi BXH cũ đều chuyển sang cửa sổ riêng mới.
+  window.openAdaptiveLeaderboard = openStandaloneLeaderboard;
+
+  function ensureGiftOverlay() {
+    let overlay = document.getElementById("khtn8-perfect-gift-overlay");
+    if (overlay) return overlay;
+
+    overlay = document.createElement("div");
+    overlay.id = "khtn8-perfect-gift-overlay";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML = `
+      <section class="perfect-gift-card" role="dialog" aria-modal="true" aria-labelledby="perfect-gift-title">
+        <div class="perfect-gift-badge">👑 PERFECT 100%</div>
+        <div id="perfect-gift-title" class="perfect-gift-title">Bạn nhận được một hộp quà!</div>
+        <div class="perfect-gift-sub">Chạm vào hộp quà để mở vật phẩm và tăng sức mạnh cho Linh thú.</div>
+        <button class="perfect-gift-box" type="button" aria-label="Mở hộp quà">🎁</button>
+        <div class="perfect-gift-actions">
+          <button class="perfect-gift-open" type="button">MỞ HỘP QUÀ</button>
+          <button class="perfect-gift-close" type="button">Để mở sau</button>
+        </div>
+      </section>`;
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closePerfectGiftOverlay();
+    });
+    overlay.querySelector(".perfect-gift-box")?.addEventListener("click", openGiftFromOverlay);
+    overlay.querySelector(".perfect-gift-open")?.addEventListener("click", openGiftFromOverlay);
+    overlay.querySelector(".perfect-gift-close")?.addEventListener("click", closePerfectGiftOverlay);
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function resetGiftOverlay() {
+    const overlay = ensureGiftOverlay();
+    overlay.classList.remove("opening");
+    const title = overlay.querySelector(".perfect-gift-title");
+    const sub = overlay.querySelector(".perfect-gift-sub");
+    const box = overlay.querySelector(".perfect-gift-box");
+    const open = overlay.querySelector(".perfect-gift-open");
+    const close = overlay.querySelector(".perfect-gift-close");
+    if (title) title.textContent = "Bạn nhận được một hộp quà!";
+    if (sub) sub.textContent = "Chạm vào hộp quà để mở vật phẩm và tăng sức mạnh cho Linh thú.";
+    if (box) { box.textContent = "🎁"; box.disabled = false; box.style.display = "grid"; }
+    if (open) { open.textContent = "MỞ HỘP QUÀ"; open.disabled = false; open.style.display = "block"; }
+    if (close) close.textContent = "Để mở sau";
+    giftBusy = false;
+  }
+
+  function showPerfectGiftOverlay() {
+    const state = currentGameState();
+    if (!state?.chestEligible || state?.chestOpened) return;
+    const overlay = ensureGiftOverlay();
+    resetGiftOverlay();
+    overlay.classList.add("active");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    overlay.querySelector(".perfect-gift-box")?.focus?.({ preventScroll: true });
+  }
+
+  function closePerfectGiftOverlay() {
+    const overlay = document.getElementById("khtn8-perfect-gift-overlay");
+    overlay?.classList.remove("active", "opening");
+    overlay?.setAttribute("aria-hidden", "true");
+    document.body.style.removeProperty("overflow");
+    giftBusy = false;
+  }
+
+  function describeGiftResult(result) {
+    if (!result) return { icon:"✨", title:"Đã mở hộp quà", text:"Phần thưởng đã được chuyển vào Túi của bạn." };
+    if (result.empty) return { icon:"🪙", title:"Rương trống", text:"Chúc bạn may mắn ở lần Perfect tiếp theo!" };
+    const item = result.item || {};
+    return {
+      icon: item.icon || "🎁",
+      title: result.duplicate ? `${item.name || "Vật phẩm"} được tăng Sao!` : `Mở khóa ${item.name || "vật phẩm mới"}!`,
+      text: result.duplicate ? `Vật phẩm hiện đạt ⭐x${item.stars || 1}.` : (item.desc || "Vật phẩm đã được thêm vào Túi.")
+    };
+  }
+
+  function openGiftFromOverlay(event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const state = currentGameState();
+    if (giftBusy || state?.chestOpened) return;
+    giftBusy = true;
+    const overlay = ensureGiftOverlay();
+    overlay.classList.add("opening");
+    overlay.querySelector(".perfect-gift-open")?.setAttribute("disabled", "disabled");
+
+    setTimeout(() => {
+      try {
+        if (typeof window.openPerfectChest === "function") window.openPerfectChest();
+      } catch (error) {
+        console.error("[Hộp quà] Không thể mở rương:", error);
+      }
+      const info = describeGiftResult(currentGameState()?.lootResult);
+      const title = overlay.querySelector(".perfect-gift-title");
+      const sub = overlay.querySelector(".perfect-gift-sub");
+      const box = overlay.querySelector(".perfect-gift-box");
+      const open = overlay.querySelector(".perfect-gift-open");
+      const close = overlay.querySelector(".perfect-gift-close");
+      if (title) title.textContent = info.title;
+      if (sub) sub.textContent = info.text;
+      if (box) { box.textContent = info.icon; box.disabled = true; }
+      if (open) open.style.display = "none";
+      if (close) close.textContent = "Đóng và xem kết quả";
+      overlay.classList.remove("opening");
+      giftBusy = false;
+    }, 650);
+  }
+
+  window.showPerfectGiftOverlay = showPerfectGiftOverlay;
+  window.closePerfectGiftOverlay = closePerfectGiftOverlay;
+
+  function bindMobileNavigation() {
+    const nav = document.getElementById("adaptive-mobile-bottom-nav");
+    if (!nav || nav.dataset.titlesGiftBxhV3 === "1") return;
+    nav.dataset.titlesGiftBxhV3 = "1";
+
+    Array.from(nav.querySelectorAll("button")).forEach((oldButton) => {
+      const label = oldButton.querySelector("span")?.textContent?.trim();
+      if (!["Nhà", "Chơi", "Danh hiệu", "BXH"].includes(label)) return;
+
+      const button = oldButton.cloneNode(true);
+      button.removeAttribute("onclick");
+      button.removeAttribute("data-nav-freeze-fixed");
+
+      if (label === "Chơi" || label === "Danh hiệu") {
+        button.innerHTML = "🏅<span>Danh hiệu</span>";
+        button.dataset.mobileNav = "titles";
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          if (typeof window.openRankCollectionModal === "function") window.openRankCollectionModal();
+        }, true);
+      } else if (label === "BXH") {
+        button.dataset.mobileNav = "leaderboard";
+        button.addEventListener("click", openStandaloneLeaderboard, true);
+      } else if (label === "Nhà") {
+        button.dataset.mobileNav = "home";
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          closeStandaloneLeaderboard();
+          closePerfectGiftOverlay();
+          if (typeof window.goHome === "function") window.goHome(event);
+        }, true);
+      }
+      oldButton.replaceWith(button);
+    });
+  }
+
+  // Bọc kết quả cuối trận để hiện hộp quà ngay sau khi đạt Perfect.
+  const previousShowResults = typeof window.showResults === "function" ? window.showResults.bind(window) : null;
+  if (previousShowResults && !window.__khtn8PerfectGiftResultWrapped) {
+    window.__khtn8PerfectGiftResultWrapped = true;
+    window.showResults = function showResultsWithGift() {
+      const result = previousShowResults(...arguments);
+      const percent = Number(result?.percent ?? 0);
+      if (percent === 100 && result?.ok !== false) {
+        setTimeout(showPerfectGiftOverlay, 320);
+      } else {
+        closePerfectGiftOverlay();
+      }
+      return result;
+    };
+    window.endGame = window.showResults;
+    window.showResult = window.showResults;
+  }
+
+  function initializeV3() {
+    ensureStandaloneBXH();
+    ensureGiftOverlay();
+    bindMobileNavigation();
+    const observer = new MutationObserver(bindMobileNavigation);
+    observer.observe(document.body, { childList:true, subtree:true });
+    setTimeout(bindMobileNavigation, 200);
+    setTimeout(bindMobileNavigation, 800);
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (document.getElementById("khtn8-perfect-gift-overlay")?.classList.contains("active")) closePerfectGiftOverlay();
+    else if (document.getElementById("khtn8-standalone-bxh")?.classList.contains("active")) closeStandaloneLeaderboard();
+  });
+  window.addEventListener("resize", sizeBXHToFive, { passive:true });
+  window.visualViewport?.addEventListener("resize", sizeBXHToFive, { passive:true });
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initializeV3, { once:true });
+  else initializeV3();
+})();
+</script>
+<!-- KHTN8_MOBILE_TITLES_GIFT_STANDALONE_BXH_V3_END -->
 
 </body>
 </html>
