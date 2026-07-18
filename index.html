@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Game Trắc Nghiệm KHTN 8 PRO</title>
 <style id="khtn8-consolidated-styles">
 /* ====================================================
@@ -11157,9 +11157,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function installRuntimeHooks() {
     wrapMutation("startMode", "start-mode", {
-      before() {
+      before(mode) {
+        // Giữ nguyên lựa chọn người chơi vừa chọn.
+        // hydrateIdentity() có thể nạp preference cũ và ghi đè topic-select,
+        // khiến ván mới lấy câu hỏi của chủ đề trước đó.
+        const topicSelect = byId("topic-select");
+        const modeSelect = byId("mode-select");
+        const selectedTopic = String(topicSelect?.value || "");
+        const selectedMode = String(modeSelect?.value || mode || "standard");
+
         const identity = inputIdentity();
-        if (isCompleteIdentity(identity)) hydrateIdentity(identity, { restoreRun: false, createIfMissing: true });
+        if (isCompleteIdentity(identity)) {
+          hydrateIdentity(identity, { restoreRun: false, createIfMissing: true });
+        }
+
+        if (
+          topicSelect &&
+          selectedTopic &&
+          Array.from(topicSelect.options).some((option) => option.value === selectedTopic)
+        ) {
+          topicSelect.value = selectedTopic;
+        }
+        if (
+          modeSelect &&
+          selectedMode &&
+          Array.from(modeSelect.options).some((option) => option.value === selectedMode)
+        ) {
+          modeSelect.value = selectedMode;
+        }
+
+        // Đồng bộ lại phần mô tả sau khi khôi phục lựa chọn hiện tại.
+        try {
+          if (typeof window.updateTopicSummary === "function") window.updateTopicSummary();
+        } catch (_) {}
       }
     });
     wrapMutation("startSelectedMode", "start-selected-mode");
@@ -11208,6 +11238,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function initialize() {
     installProfileBridge();
     bindIdentityInputs();
+
+    // Lưu ngay lựa chọn chủ đề/chế độ để lần tải hồ sơ kế tiếp không dùng preference cũ.
+    byId("topic-select")?.addEventListener("change", () => scheduleSave("topic-change"));
+    byId("mode-select")?.addEventListener("change", () => scheduleSave("mode-change"));
 
     window.showLevelUpModal = showLevelUpModalV12;
     window.closeLevelUpModal = completeLevelUp;
@@ -11269,6 +11303,161 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 <!-- ===== KHTN8 PRO FINAL STATE & LEVEL-UP FIX V12 END ===== -->
+
+
+<style id="final-responsive-orientation-fix">
+/* FINAL RESPONSIVE + ORIENTATION FIX */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { width: 100%; min-width: 0; }
+body { min-height: 100svh; overflow-x: clip; }
+img, svg, canvas, video { max-width: 100%; height: auto; }
+button, input, select, textarea { max-width: 100%; }
+.app-shell { width: 100%; min-height: 100svh; padding-left: max(clamp(4px,1vw,14px), env(safe-area-inset-left)); padding-right: max(clamp(4px,1vw,14px), env(safe-area-inset-right)); }
+.fit-stage { width: 100%; min-width: 0; min-height: 100svh; }
+.container { width: min(100%, 1500px); max-width: 100%; min-width: 0; }
+
+/* Prevent long content from forcing horizontal overflow */
+.question-text, .option-text, .selection-box, .feedback, .mission-note,
+.mode-roadmap-text, .topic-map-title, .leaderboard-player-name,
+.leaderboard-topic-name, .result-row, .share-card { overflow-wrap: anywhere; word-break: normal; }
+.input-grid > *, .stats-grid > *, .mode-grid > *, .reward-grid > *,
+.options-grid > *, .home-form-grid > *, .home-mode-grid > *, .top-level-grid > * { min-width: 0; }
+
+/* Touch-friendly controls */
+@media (pointer: coarse) {
+  button, .btn, .small-btn, .mode-btn, .reward-btn, .tool-btn,
+  .option-card, select, input[type="text"] { min-height: 44px; }
+  .option-card { -webkit-user-select: none; user-select: none; }
+}
+
+/* Tablet portrait and small laptop */
+@media (min-width: 769px) and (max-width: 1100px) {
+  #start-screen .hero-box.adaptive-home {
+    grid-template-columns: minmax(260px,.85fr) minmax(0,1.15fr);
+  }
+  #start-screen .home-form-grid,
+  #start-screen .home-mode-grid { grid-template-columns: 1fr; }
+  .home-shortcuts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .options-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+/* Phones and narrow tablets */
+@media (max-width: 768px) {
+  html, body { min-height: 100%; }
+  body { min-height: 100svh; }
+  .app-shell { padding: 0; min-height: 100svh; }
+  .fit-stage { min-height: 100svh; }
+  .container {
+    min-height: 100svh;
+    border-radius: 0;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+  #start-screen .hero-box.adaptive-home { display: block; padding: 10px; }
+  #start-screen .hero-box.adaptive-home > * { margin-top: 10px; }
+  #start-screen .hero-box.adaptive-home > :first-child { margin-top: 0; }
+  #start-screen .home-profile-grid { position: static; }
+  .home-shortcuts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .options-grid { grid-template-columns: 1fr; }
+  .question-meta { align-items: flex-start; }
+  .question-text { font-size: clamp(1rem,4.5vw,1.3rem); }
+  .option-text { font-size: clamp(.9rem,3.8vw,1.02rem); }
+  .collection-card, .leaderboard-panel.mobile-panel-open { max-width: 100%; }
+  .pro-toast-wrap { left: 8px; right: 8px; bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .pro-toast { min-width: 0; width: 100%; max-width: none; }
+}
+
+/* Very narrow phones */
+@media (max-width: 380px) {
+  .container { padding-left: 6px; padding-right: 6px; }
+  .mobile-game-hud { grid-template-columns: 1fr 1fr; gap: 5px; padding: 7px; }
+  .mobile-hud-chip { min-height: 36px; padding: 5px 6px; font-size: .72rem; }
+  .mobile-hud-chip.xp { grid-column: 1 / -1; }
+  .home-shortcuts { gap: 7px; }
+  .home-shortcut-btn { min-height: 48px; font-size: .76rem; }
+  .option-card { padding: 10px; }
+  .option-letter { width: 30px; height: 30px; flex-basis: 30px; }
+}
+
+/* Phone landscape: use width efficiently and keep game playable */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 950px) {
+  body { overflow-y: auto !important; }
+  .app-shell, .fit-stage, .container { min-height: 100svh; }
+  .container { padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+  body[data-screen="game"] .container { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
+  body[data-screen="game"] header, body[data-screen="game"] footer { display: none; }
+  .mobile-game-hud {
+    position: static;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    margin: 0 0 5px;
+    padding: 5px;
+    border-radius: 12px;
+  }
+  .mobile-hud-chip { min-height: 32px; padding: 4px 6px; font-size: .72rem; }
+  .mobile-hud-chip.xp { grid-column: auto; }
+  #game-screen .question-box { margin-top: 4px; padding: 8px; border-radius: 14px; }
+  .question-meta { margin-bottom: 4px; font-size: .7rem; }
+  .question-text { font-size: clamp(.9rem,2.4vw,1.05rem); line-height: 1.35; margin-bottom: 7px; }
+  .options-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  .option-card { min-height: 46px; padding: 7px 9px; border-radius: 12px; gap: 7px; }
+  .option-letter { width: 28px; height: 28px; flex-basis: 28px; font-size: .76rem; }
+  .option-text { font-size: .82rem; line-height: 1.3; }
+  #game-screen .streak-bar-wrap { margin: 4px 0; height: 6px; }
+  #streak-note, #feedback { margin: 4px 0; padding: 6px 8px; font-size: .74rem; }
+  #game-screen .btn-row {
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    gap: 6px;
+  }
+  #game-screen .btn-check { grid-column: auto; min-height: 44px; font-size: .85rem; }
+  #game-screen .btn-next { min-height: 44px; font-size: .85rem; }
+  #game-screen .btn-row::after { min-height: 44px; font-size: .8rem; }
+  .mobile-bottom-nav { display: none !important; }
+  .collection-overlay { align-items: center; padding: 6px; }
+  .collection-card { max-height: 96svh; border-radius: 16px; }
+  .collection-body { max-height: calc(96svh - 72px); }
+}
+
+/* Desktop landscape and wide displays */
+@media (min-width: 1200px) and (orientation: landscape) {
+  #game-screen .options-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #game-screen .question-box { max-width: 1320px; margin-left: auto; margin-right: auto; }
+}
+
+/* Safe-area support for fixed mobile UI */
+@media (max-width: 768px) {
+  #game-screen .btn-row,
+  body:not([data-screen="game"]) .mobile-bottom-nav {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+}
+</style>
+<script id="final-responsive-orientation-script">
+(() => {
+  const root = document.documentElement;
+  let frame = 0;
+
+  function syncViewportState() {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      const viewport = window.visualViewport;
+      const width = Math.round(viewport?.width || window.innerWidth || root.clientWidth);
+      const height = Math.round(viewport?.height || window.innerHeight || root.clientHeight);
+      const orientation = width > height ? 'landscape' : 'portrait';
+      root.style.setProperty('--app-vw', `${width}px`);
+      root.style.setProperty('--app-vh', `${height}px`);
+      document.body.dataset.orientation = orientation;
+      document.body.dataset.device = width <= 768 ? 'mobile' : (width <= 1100 ? 'tablet' : 'desktop');
+    });
+  }
+
+  syncViewportState();
+  window.addEventListener('resize', syncViewportState, { passive: true });
+  window.addEventListener('orientationchange', syncViewportState, { passive: true });
+  window.visualViewport?.addEventListener('resize', syncViewportState, { passive: true });
+  window.visualViewport?.addEventListener('scroll', syncViewportState, { passive: true });
+})();
+</script>
 
 </body>
 </html>
