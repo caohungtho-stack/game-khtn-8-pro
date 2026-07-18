@@ -5178,7 +5178,7 @@ function renderEquationQuestion(q) {
 
   document.getElementById("options-grid").innerHTML = `
     <div style="grid-column:1/-1;min-width:0;">
-      <div class="equation-scroll-wrap">
+      <div class="equation-scroll-wrap" aria-label="Phương trình hóa học">
         <div class="equation-play" data-compounds="${q.left.length + q.right.length}">
           <div class="equation-side equation-left">${leftHTML}</div>
           <span class="equation-symbol equation-arrow" aria-label="tạo thành">→</span>
@@ -5201,7 +5201,48 @@ function renderEquationQuestion(q) {
     });
     const first = document.getElementById('coeff-0');
     if (first) selectCoeffInput(first);
+    fitEquationToViewport();
   }, 50);
+}
+
+
+function fitEquationToViewport() {
+  const wrap = document.querySelector('#game-screen .equation-scroll-wrap');
+  const play = wrap?.querySelector('.equation-play');
+  if (!wrap || !play) return;
+
+  // Đặt lại kích thước lớn trước khi đo, sau đó chỉ thu nhỏ vừa đủ để lọt màn hình.
+  play.style.setProperty('--eq-fit-scale', '1');
+
+  requestAnimationFrame(() => {
+    const available = Math.max(0, wrap.clientWidth - 4);
+    const natural = Math.max(play.scrollWidth, play.getBoundingClientRect().width);
+    if (!available || !natural) return;
+
+    const isPhone = (window.visualViewport?.width || window.innerWidth) <= 768;
+    const minScale = isPhone ? 0.76 : 0.88;
+    const scale = Math.max(minScale, Math.min(1, available / natural));
+    play.style.setProperty('--eq-fit-scale', scale.toFixed(3));
+
+    requestAnimationFrame(() => {
+      const overflowing = play.scrollWidth > wrap.clientWidth + 3;
+      wrap.classList.toggle('equation-overflowing', overflowing);
+      // Khi phương trình vừa màn hình, luôn căn giữa; khi còn hơi dài, bắt đầu từ vế trái.
+      wrap.scrollLeft = overflowing ? 0 : Math.max(0, (play.scrollWidth - wrap.clientWidth) / 2);
+    });
+  });
+}
+
+if (!window.__equationFitResizeBound) {
+  window.__equationFitResizeBound = true;
+  let equationFitFrame = 0;
+  const scheduleEquationFit = () => {
+    cancelAnimationFrame(equationFitFrame);
+    equationFitFrame = requestAnimationFrame(fitEquationToViewport);
+  };
+  window.addEventListener('resize', scheduleEquationFit, { passive: true });
+  window.addEventListener('orientationchange', scheduleEquationFit, { passive: true });
+  window.visualViewport?.addEventListener('resize', scheduleEquationFit, { passive: true });
 }
 
 function getEquationInputs(q) {
@@ -5824,6 +5865,7 @@ function loadQuestion() {
   document.getElementById("question-level-label").innerText = `Độ khó: ${getDifficultyText(q.level)}`;
   document.getElementById("mode-label").innerText = `Chế độ: ${config.label}${survivalStageText}`;
   document.getElementById("question-text").innerText = q.question;
+  document.querySelector("#game-screen .question-box")?.classList.toggle("equation-question-active", q.type === "equation");
   document.getElementById("feedback").innerText = "";
   document.getElementById("feedback").style.background = "transparent";
 
@@ -11449,21 +11491,26 @@ button, input, select, textarea { max-width: 100%; }
 </style>
 
 <style id="equation-mobile-portrait-fit">
-/* Cân bằng phương trình: luôn giữ toàn bộ phản ứng trên cùng một hàng ngang.
-   Nếu phương trình quá dài trên màn hình nhỏ, cho phép cuộn ngang nhẹ thay vì tự xuống hàng. */
+/* Phương trình hóa học: chữ lớn, một hàng ngang và tự co vừa màn hình điện thoại. */
 .equation-scroll-wrap {
   width: 100%;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 2px;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  padding: 2px 0 4px;
 }
 .equation-scroll-wrap::-webkit-scrollbar { height: 4px; }
-.equation-scroll-wrap::-webkit-scrollbar-thumb { background: rgba(59,130,246,.25); border-radius: 999px; }
+.equation-scroll-wrap::-webkit-scrollbar-thumb {
+  background: rgba(59,130,246,.28);
+  border-radius: 999px;
+}
 
 .equation-play,
 #game-screen .equation-play {
+  --eq-fit-scale: 1;
   display: inline-flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
@@ -11472,10 +11519,12 @@ button, input, select, textarea { max-width: 100%; }
   width: max-content !important;
   min-width: 100%;
   max-width: none !important;
-  gap: 8px;
+  gap: calc(8px * var(--eq-fit-scale));
+  padding: calc(14px * var(--eq-fit-scale)) calc(10px * var(--eq-fit-scale));
   overflow: visible !important;
   white-space: nowrap !important;
   margin: 0 auto;
+  font-size: calc(1.22rem * var(--eq-fit-scale)) !important;
 }
 .equation-side,
 #game-screen .equation-side {
@@ -11488,7 +11537,7 @@ button, input, select, textarea { max-width: 100%; }
   min-width: auto !important;
   max-width: none !important;
   flex: 0 0 auto !important;
-  gap: 7px;
+  gap: calc(7px * var(--eq-fit-scale));
   white-space: nowrap !important;
 }
 .equation-part,
@@ -11498,7 +11547,10 @@ button, input, select, textarea { max-width: 100%; }
   min-width: auto !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 4px;
+  gap: calc(4px * var(--eq-fit-scale));
+  font-size: inherit !important;
+  font-weight: 900;
+  line-height: 1.08;
   white-space: nowrap !important;
 }
 .equation-compound,
@@ -11506,8 +11558,12 @@ button, input, select, textarea { max-width: 100%; }
   display: inline-block;
   flex: 0 0 auto;
   min-width: 0;
+  color: #0f172a;
+  font-size: 1em !important;
+  font-weight: 900;
+  letter-spacing: -.015em;
+  line-height: 1.08;
   white-space: nowrap !important;
-  line-height: 1.15;
 }
 .equation-symbol,
 .equation-arrow,
@@ -11517,110 +11573,94 @@ button, input, select, textarea { max-width: 100%; }
 #game-screen .equation-plus {
   display: inline-block;
   flex: 0 0 auto !important;
+  color: var(--secondary);
+  font-size: 1.05em !important;
+  font-weight: 900;
+  line-height: 1;
   white-space: nowrap !important;
+}
+#game-screen .equation-arrow {
+  margin: 0 calc(2px * var(--eq-fit-scale));
+  font-size: 1.18em !important;
+}
+#game-screen .equation-compound sub {
+  font-size: .68em;
+  line-height: 0;
 }
 
 @media (max-width: 768px) {
+  #game-screen .question-box.equation-question-active {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+  #game-screen .question-box.equation-question-active .options-grid {
+    gap: 8px;
+  }
   #game-screen .equation-scroll-wrap {
+    width: 100%;
     padding-left: 0;
     padding-right: 0;
   }
   #game-screen .equation-play {
-    gap: 3px;
-    padding: 8px 0;
-    font-size: clamp(.66rem, 2.85vw, .86rem);
+    font-size: calc(1.16rem * var(--eq-fit-scale)) !important;
+    gap: calc(5px * var(--eq-fit-scale));
+    padding: calc(11px * var(--eq-fit-scale)) calc(3px * var(--eq-fit-scale));
   }
   #game-screen .equation-side {
-    gap: 3px;
-    padding: 0;
+    gap: calc(5px * var(--eq-fit-scale));
   }
   #game-screen .equation-part {
-    gap: 2px;
-    font-size: inherit;
-    line-height: 1.1;
+    gap: calc(3px * var(--eq-fit-scale));
   }
   #game-screen .coeff-input,
   #game-screen input.coeff-input[type="text"] {
     box-sizing: border-box;
-    flex: 0 0 21px !important;
-    width: 21px !important;
-    min-width: 21px !important;
-    max-width: 21px !important;
-    height: 24px !important;
-    min-height: 24px !important;
-    padding: 0 1px !important;
+    flex: 0 0 calc(29px * var(--eq-fit-scale)) !important;
+    width: calc(29px * var(--eq-fit-scale)) !important;
+    min-width: calc(29px * var(--eq-fit-scale)) !important;
+    max-width: calc(29px * var(--eq-fit-scale)) !important;
+    height: calc(32px * var(--eq-fit-scale)) !important;
+    min-height: calc(32px * var(--eq-fit-scale)) !important;
+    padding: 0 2px !important;
     border-width: 1.5px;
-    border-radius: 6px;
-    font-size: .68rem;
-    line-height: 22px;
-  }
-  #game-screen .equation-symbol {
-    font-size: .78rem;
+    border-radius: calc(8px * var(--eq-fit-scale));
+    font-size: calc(.82rem * var(--eq-fit-scale)) !important;
     line-height: 1;
   }
-  #game-screen .equation-plus { margin: 0; }
-  #game-screen .equation-arrow {
-    margin: 0 1px;
-    transform: none;
-    font-size: .9rem;
-  }
-  #game-screen .equation-compound sub {
-    font-size: .68em;
-    line-height: 0;
-  }
 
-  /* Phương trình có 5 chất cần nén thêm để vẫn nằm trên một hàng; nếu vượt quá thì cuộn ngang. */
+  /* Năm chất vẫn giữ chữ dễ đọc; JavaScript chỉ thu nhỏ vừa đủ khi thật sự cần. */
   #game-screen .equation-play[data-compounds="5"] {
-    gap: 2px;
-    font-size: clamp(.58rem, 2.55vw, .75rem);
+    font-size: calc(1.06rem * var(--eq-fit-scale)) !important;
+    gap: calc(4px * var(--eq-fit-scale));
   }
-  #game-screen .equation-play[data-compounds="5"] .equation-side,
-  #game-screen .equation-play[data-compounds="5"] .equation-part { gap: 1px; }
+  #game-screen .equation-play[data-compounds="5"] .equation-side {
+    gap: calc(4px * var(--eq-fit-scale));
+  }
+  #game-screen .equation-play[data-compounds="5"] .equation-part {
+    gap: calc(2px * var(--eq-fit-scale));
+  }
   #game-screen .equation-play[data-compounds="5"] .coeff-input,
   #game-screen .equation-play[data-compounds="5"] input.coeff-input[type="text"] {
-    flex-basis: 18px !important;
-    width: 18px !important;
-    min-width: 18px !important;
-    max-width: 18px !important;
-    height: 22px !important;
-    min-height: 22px !important;
-    border-radius: 5px;
-    font-size: .62rem;
-    line-height: 20px;
+    flex-basis: calc(26px * var(--eq-fit-scale)) !important;
+    width: calc(26px * var(--eq-fit-scale)) !important;
+    min-width: calc(26px * var(--eq-fit-scale)) !important;
+    max-width: calc(26px * var(--eq-fit-scale)) !important;
+    height: calc(29px * var(--eq-fit-scale)) !important;
+    min-height: calc(29px * var(--eq-fit-scale)) !important;
+    font-size: calc(.76rem * var(--eq-fit-scale)) !important;
   }
-  #game-screen .equation-play[data-compounds="5"] .equation-symbol { font-size: .68rem; }
-  #game-screen .equation-play[data-compounds="5"] .equation-arrow { font-size: .8rem; }
 }
 
 @media (max-width: 360px) {
-  #game-screen .equation-play {
-    gap: 2px;
-    font-size: clamp(.6rem, 2.7vw, .76rem);
+  #game-screen .question-box.equation-question-active {
+    padding-left: 5px;
+    padding-right: 5px;
   }
-  #game-screen .equation-side,
-  #game-screen .equation-part { gap: 1px; }
-  #game-screen .coeff-input,
-  #game-screen input.coeff-input[type="text"] {
-    flex-basis: 19px !important;
-    width: 19px !important;
-    min-width: 19px !important;
-    max-width: 19px !important;
-    height: 22px !important;
-    min-height: 22px !important;
-    font-size: .62rem;
-    line-height: 20px;
+  #game-screen .equation-play {
+    font-size: calc(1.12rem * var(--eq-fit-scale)) !important;
   }
   #game-screen .equation-play[data-compounds="5"] {
-    font-size: clamp(.53rem, 2.35vw, .66rem);
-  }
-  #game-screen .equation-play[data-compounds="5"] .coeff-input,
-  #game-screen .equation-play[data-compounds="5"] input.coeff-input[type="text"] {
-    flex-basis: 17px !important;
-    width: 17px !important;
-    min-width: 17px !important;
-    max-width: 17px !important;
-    height: 21px !important;
-    min-height: 21px !important;
+    font-size: calc(1.02rem * var(--eq-fit-scale)) !important;
   }
 }
 </style>
