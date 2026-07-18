@@ -12949,5 +12949,640 @@ button, input, select, textarea { max-width: 100%; }
 </script>
 <!-- KHTN8_MOBILE_TITLES_GIFT_STANDALONE_BXH_V3_END -->
 
+
+<!-- KHTN8_LEADERBOARD_SEPARATE_PAGE_V4 -->
+<style id="khtn8-leaderboard-page-v4-style">
+  /* Các bảng cũ trong trang chủ/kết quả và cửa sổ nổi cũ được ẩn hoàn toàn. */
+  #start-screen .leaderboard-panel,
+  #result-screen .leaderboard-panel,
+  #khtn8-standalone-bxh,
+  #khtn8-leaderboard-backdrop,
+  body > .leaderboard-panel.khtn8-leaderboard-modal {
+    display: none !important;
+  }
+
+  #leaderboard-screen {
+    padding: 2px 0 8px;
+  }
+
+  #leaderboard-screen .leaderboard-page-shell {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+    border: 1.5px solid #dbeafe;
+    border-radius: 26px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #fffdf2 0%, #ffffff 44%, #eff6ff 100%);
+    box-shadow: 0 18px 46px rgba(15, 23, 42, .14);
+  }
+
+  #leaderboard-screen .leaderboard-page-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: clamp(18px, 3vw, 34px);
+    background:
+      radial-gradient(circle at 8% 15%, rgba(253, 230, 138, .72), transparent 32%),
+      radial-gradient(circle at 92% 5%, rgba(191, 219, 254, .72), transparent 34%),
+      linear-gradient(135deg, #fff7d6, #ffffff 56%, #eef2ff);
+    border-bottom: 1.5px solid #e2e8f0;
+  }
+
+  #leaderboard-screen .leaderboard-page-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: fit-content;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: .76rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  #leaderboard-screen .leaderboard-page-title {
+    margin: 9px 0 5px;
+    color: #0f172a;
+    font-size: clamp(1.45rem, 4vw, 2.45rem);
+    line-height: 1.12;
+    font-weight: 900;
+    letter-spacing: -.03em;
+  }
+
+  #leaderboard-screen .leaderboard-page-subtitle {
+    max-width: 720px;
+    color: #475569;
+    font-size: clamp(.84rem, 1.7vw, 1rem);
+    line-height: 1.55;
+    font-weight: 700;
+  }
+
+  #leaderboard-screen .leaderboard-page-trophy {
+    width: clamp(76px, 12vw, 126px);
+    height: clamp(76px, 12vw, 126px);
+    display: grid;
+    place-items: center;
+    border-radius: 30px;
+    background: linear-gradient(145deg, #fef3c7, #ffffff);
+    border: 2px solid #fbbf24;
+    font-size: clamp(3.1rem, 8vw, 6rem);
+    box-shadow: 0 14px 30px rgba(245, 158, 11, .22);
+  }
+
+  #leaderboard-screen .leaderboard-page-body {
+    padding: clamp(12px, 2.5vw, 24px);
+  }
+
+  #leaderboard-screen .leaderboard-page-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  #leaderboard-screen .leaderboard-page-status {
+    flex: 1 1 260px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 9px 13px;
+    border-radius: 14px;
+    background: #eff6ff;
+    border: 1.5px solid #bfdbfe;
+    color: #1e3a8a;
+    font-size: .82rem;
+    line-height: 1.4;
+    font-weight: 800;
+  }
+
+  #leaderboard-screen .leaderboard-page-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  #leaderboard-screen .leaderboard-page-btn {
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 14px;
+    color: #fff;
+    font-size: .84rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 7px 17px rgba(15, 23, 42, .13);
+  }
+
+  #leaderboard-screen .leaderboard-page-btn.refresh {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+  }
+
+  #leaderboard-screen .leaderboard-page-btn.home {
+    background: linear-gradient(135deg, #64748b, #334155);
+  }
+
+  #leaderboard-screen .leaderboard-page-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 12px;
+  }
+
+  #leaderboard-screen .leaderboard-page-metric {
+    min-width: 0;
+    padding: 11px 13px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .92);
+  }
+
+  #leaderboard-screen .leaderboard-page-metric-label {
+    color: #64748b;
+    font-size: .69rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .045em;
+  }
+
+  #leaderboard-screen .leaderboard-page-metric-value {
+    margin-top: 4px;
+    overflow: hidden;
+    color: #0f172a;
+    font-size: clamp(.9rem, 2vw, 1.15rem);
+    line-height: 1.25;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #leaderboard-screen .leaderboard-page-list-wrap {
+    border: 1.5px solid #dbeafe;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .94);
+    overflow: hidden;
+  }
+
+  #leaderboard-screen .leaderboard-page-list-caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 13px;
+    color: #334155;
+    background: linear-gradient(135deg, #f8fafc, #eff6ff);
+    border-bottom: 1px solid #dbeafe;
+    font-size: .78rem;
+    font-weight: 900;
+  }
+
+  #leaderboard-list-page {
+    display: grid;
+    gap: 7px;
+    height: var(--leaderboard-five-row-height, 430px);
+    max-height: min(58dvh, 560px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #leaderboard-list-page .leaderboard-summary {
+    display: none !important;
+  }
+
+  #leaderboard-list-page .leaderboard-row.head {
+    position: sticky;
+    top: -10px;
+    z-index: 3;
+  }
+
+  #leaderboard-list-page::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  #leaderboard-list-page::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(59, 130, 246, .35);
+  }
+
+  @media (max-width: 768px) {
+    #leaderboard-screen {
+      padding: 0 0 calc(76px + env(safe-area-inset-bottom));
+    }
+
+    #leaderboard-screen .leaderboard-page-shell {
+      border-radius: 20px;
+    }
+
+    #leaderboard-screen .leaderboard-page-hero {
+      grid-template-columns: minmax(0, 1fr) 72px;
+      gap: 10px;
+      padding: 15px 13px;
+    }
+
+    #leaderboard-screen .leaderboard-page-trophy {
+      width: 68px;
+      height: 68px;
+      border-radius: 21px;
+      font-size: 3rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-title {
+      margin-top: 6px;
+      font-size: 1.35rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-subtitle {
+      font-size: .76rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-body {
+      padding: 9px;
+    }
+
+    #leaderboard-screen .leaderboard-page-toolbar {
+      align-items: stretch;
+      margin-bottom: 8px;
+    }
+
+    #leaderboard-screen .leaderboard-page-actions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    #leaderboard-screen .leaderboard-page-btn {
+      width: 100%;
+      padding: 8px 9px;
+      font-size: .76rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-status {
+      min-height: 38px;
+      font-size: .72rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-metrics {
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    #leaderboard-screen .leaderboard-page-metric {
+      padding: 8px 7px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    #leaderboard-screen .leaderboard-page-metric-label {
+      font-size: .56rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-metric-value {
+      font-size: .76rem;
+    }
+
+    #leaderboard-screen .leaderboard-page-list-caption {
+      padding: 8px 9px;
+      font-size: .68rem;
+    }
+
+    #leaderboard-list-page {
+      gap: 5px;
+      padding: 7px;
+      max-height: 57dvh;
+    }
+
+    #leaderboard-list-page .leaderboard-row.head {
+      display: none !important;
+    }
+
+    #leaderboard-list-page .leaderboard-row:not(.head) {
+      display: grid !important;
+      grid-template-columns: 42px minmax(0, 1fr) auto auto !important;
+      align-items: center !important;
+      gap: 5px !important;
+      min-height: 58px;
+      padding: 7px !important;
+      margin: 0 !important;
+      border-radius: 13px !important;
+    }
+
+    #leaderboard-list-page .leaderboard-rank {
+      margin: 0 !important;
+      gap: 2px;
+      font-size: .72rem;
+    }
+
+    #leaderboard-list-page .leaderboard-rank-icon {
+      width: 23px;
+      height: 23px;
+      font-size: .8rem;
+    }
+
+    #leaderboard-list-page .leaderboard-player-name {
+      font-size: .75rem;
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #leaderboard-list-page .leaderboard-meta {
+      font-size: .57rem;
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #leaderboard-list-page .leaderboard-topic-cell,
+    #leaderboard-list-page .leaderboard-mode-cell,
+    #leaderboard-list-page .leaderboard-inline-meta {
+      display: none !important;
+    }
+
+    #leaderboard-list-page .leaderboard-pill {
+      margin: 0 !important;
+      padding: 4px 5px;
+      font-size: .6rem;
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 380px) {
+    #leaderboard-screen .leaderboard-page-hero {
+      grid-template-columns: minmax(0, 1fr) 58px;
+    }
+    #leaderboard-screen .leaderboard-page-trophy {
+      width: 56px;
+      height: 56px;
+      font-size: 2.45rem;
+    }
+  }
+</style>
+<script id="khtn8-leaderboard-page-v4-script">
+(() => {
+  "use strict";
+
+  let refreshRequest = 0;
+
+  function closeLegacyLeaderboardLayers() {
+    try { window.closeStandaloneLeaderboard?.(); } catch (_) {}
+    document.getElementById("khtn8-standalone-bxh")?.classList.remove("active");
+    document.getElementById("khtn8-leaderboard-backdrop")?.classList.remove("active");
+    document.querySelectorAll(".leaderboard-panel.mobile-panel-open, .leaderboard-panel.khtn8-leaderboard-modal")
+      .forEach((panel) => panel.classList.remove("mobile-panel-open", "khtn8-leaderboard-modal"));
+    document.body.classList.remove("khtn8-leaderboard-modal-open");
+    document.body.style.removeProperty("overflow");
+  }
+
+  function getRows() {
+    try {
+      const rows = window.getLeaderboardRowsForCurrentSource?.();
+      if (Array.isArray(rows)) return rows;
+    } catch (_) {}
+    try {
+      const rows = window.getLocalLeaderboard?.();
+      if (Array.isArray(rows)) return rows;
+    } catch (_) {}
+    try {
+      if (typeof leaderboardCache !== "undefined" && Array.isArray(leaderboardCache)) {
+        return leaderboardCache.slice();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  function createLeaderboardPage() {
+    let screen = document.getElementById("leaderboard-screen");
+    if (screen) return screen;
+
+    screen = document.createElement("div");
+    screen.id = "leaderboard-screen";
+    screen.className = "screen";
+    screen.setAttribute("aria-label", "Trang bảng xếp hạng");
+    screen.innerHTML = `
+      <section class="leaderboard-page-shell">
+        <header class="leaderboard-page-hero">
+          <div>
+            <div class="leaderboard-page-kicker">🏅 Thành tích toàn trường</div>
+            <h2 class="leaderboard-page-title">Bảng Xếp Hạng KHTN 8</h2>
+            <div class="leaderboard-page-subtitle">Theo dõi những người chơi dẫn đầu. Danh sách hiển thị 5 vị trí đầu tiên; cuộn xuống để xem các vị trí còn lại.</div>
+          </div>
+          <div class="leaderboard-page-trophy" aria-hidden="true">🏆</div>
+        </header>
+
+        <div class="leaderboard-page-body">
+          <div class="leaderboard-page-toolbar">
+            <div id="leaderboard-page-status" class="leaderboard-page-status" aria-live="polite">Sẵn sàng hiển thị bảng xếp hạng.</div>
+            <div class="leaderboard-page-actions">
+              <button id="leaderboard-page-refresh" class="leaderboard-page-btn refresh" type="button">🔄 Làm mới</button>
+              <button id="leaderboard-page-home" class="leaderboard-page-btn home" type="button">🏠 Trang chủ</button>
+            </div>
+          </div>
+
+          <div class="leaderboard-page-metrics" aria-label="Tóm tắt bảng xếp hạng">
+            <div class="leaderboard-page-metric">
+              <div class="leaderboard-page-metric-label">Người dẫn đầu</div>
+              <div id="leaderboard-page-top-name" class="leaderboard-page-metric-value">Chưa có</div>
+            </div>
+            <div class="leaderboard-page-metric">
+              <div class="leaderboard-page-metric-label">Số người chơi</div>
+              <div id="leaderboard-page-count" class="leaderboard-page-metric-value">0</div>
+            </div>
+            <div class="leaderboard-page-metric">
+              <div class="leaderboard-page-metric-label">Level cao nhất</div>
+              <div id="leaderboard-page-max-level" class="leaderboard-page-metric-value">Lv 1</div>
+            </div>
+          </div>
+
+          <div class="leaderboard-page-list-wrap">
+            <div class="leaderboard-page-list-caption">
+              <span>🏆 Danh sách xếp hạng</span>
+              <span>Hiển thị 5 người • cuộn để xem thêm</span>
+            </div>
+            <div id="leaderboard-list-page" class="leaderboard-list" tabindex="0"></div>
+          </div>
+        </div>
+      </section>`;
+
+    const container = document.querySelector(".container");
+    const footer = container?.querySelector(":scope > footer");
+    if (footer) footer.insertAdjacentElement("beforebegin", screen);
+    else container?.appendChild(screen);
+
+    screen.querySelector("#leaderboard-page-refresh")?.addEventListener("click", () => refreshPage(true));
+    screen.querySelector("#leaderboard-page-home")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (typeof window.goHome === "function") window.goHome(event);
+      else activateScreen("start-screen");
+    });
+    return screen;
+  }
+
+  function activateScreen(id) {
+    document.querySelectorAll(".screen").forEach((screen) => {
+      screen.classList.toggle("active", screen.id === id);
+    });
+    document.body.dataset.screen = id.replace("-screen", "");
+    try { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }
+    catch (_) { window.scrollTo(0, 0); }
+  }
+
+  function updateMetrics(rows) {
+    const top = rows[0] || null;
+    const maxLevel = rows.reduce((max, row) => Math.max(max, Number(row?.level) || 1), 1);
+    const topName = document.getElementById("leaderboard-page-top-name");
+    const count = document.getElementById("leaderboard-page-count");
+    const level = document.getElementById("leaderboard-page-max-level");
+    if (topName) topName.textContent = top?.name || "Chưa có";
+    if (count) count.textContent = String(rows.length);
+    if (level) level.textContent = `Lv ${maxLevel}`;
+  }
+
+  function sizeListToFiveRows() {
+    const list = document.getElementById("leaderboard-list-page");
+    if (!list) return;
+    requestAnimationFrame(() => {
+      const rows = Array.from(list.querySelectorAll(".leaderboard-row:not(.head)"));
+      if (!rows.length) {
+        list.style.setProperty("--leaderboard-five-row-height", "250px");
+        return;
+      }
+      const fifth = rows[Math.min(4, rows.length - 1)];
+      const header = list.querySelector(".leaderboard-row.head");
+      const desired = Math.ceil(fifth.offsetTop + fifth.offsetHeight + 10);
+      const viewport = window.visualViewport?.height || window.innerHeight || 760;
+      const maxAllowed = Math.max(260, Math.floor(viewport * .58));
+      const minAllowed = header ? Math.ceil(header.offsetHeight + rows[0].offsetHeight * Math.min(5, rows.length) + 34) : 245;
+      list.style.setProperty("--leaderboard-five-row-height", `${Math.min(Math.max(desired, Math.min(minAllowed, maxAllowed)), maxAllowed)}px`);
+      list.scrollTop = 0;
+    });
+  }
+
+  function renderPage(rows, statusText) {
+    const list = document.getElementById("leaderboard-list-page");
+    const status = document.getElementById("leaderboard-page-status");
+    if (!list) return;
+
+    try {
+      if (typeof window.renderLeaderboardList === "function") {
+        window.renderLeaderboardList(list.id, rows);
+      } else if (!rows.length) {
+        list.innerHTML = '<div class="leaderboard-note">Chưa có dữ liệu thành tích.</div>';
+      }
+    } catch (error) {
+      console.warn("[Trang BXH] Không thể dựng danh sách:", error);
+      list.innerHTML = '<div class="leaderboard-note">Không thể hiển thị bảng xếp hạng lúc này.</div>';
+    }
+
+    updateMetrics(rows);
+    if (status) status.textContent = statusText || `Đang hiển thị ${rows.length} người chơi • cuộn xuống để xem thêm.`;
+    sizeListToFiveRows();
+  }
+
+  async function refreshPage(forceOnline = false) {
+    const requestId = ++refreshRequest;
+    const localRows = getRows();
+    renderPage(localRows, forceOnline ? "Đang kiểm tra và cập nhật dữ liệu mới..." : "Đang hiển thị dữ liệu bảng xếp hạng.");
+
+    if (typeof window.refreshLeaderboard !== "function") return localRows;
+
+    try {
+      const timeout = new Promise((resolve) => setTimeout(() => resolve("timeout"), 4500));
+      const result = await Promise.race([
+        Promise.resolve().then(() => window.refreshLeaderboard()),
+        timeout
+      ]);
+      if (requestId !== refreshRequest) return result;
+      const rows = getRows();
+      renderPage(rows, result === "timeout"
+        ? "Mạng phản hồi chậm • đang hiển thị dữ liệu đã lưu trên máy."
+        : `Đã cập nhật bảng xếp hạng • tổng ${rows.length} người chơi.`);
+      return result;
+    } catch (error) {
+      console.warn("[Trang BXH] Làm mới thất bại:", error);
+      if (requestId === refreshRequest) {
+        renderPage(getRows(), "Không tải được dữ liệu online • đang hiển thị dữ liệu trên máy.");
+      }
+      return localRows;
+    }
+  }
+
+  function openLeaderboardPage(event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    event?.stopImmediatePropagation?.();
+
+    closeLegacyLeaderboardLayers();
+    createLeaderboardPage();
+
+    try {
+      if (typeof RealTimeTimer !== "undefined" && RealTimeTimer?.stop) RealTimeTimer.stop(false);
+    } catch (_) {}
+
+    activateScreen("leaderboard-screen");
+    renderPage(getRows(), "Đang hiển thị bảng xếp hạng.");
+    requestAnimationFrame(() => {
+      document.getElementById("leaderboard-page-refresh")?.focus?.({ preventScroll: true });
+      refreshPage(false);
+    });
+    return false;
+  }
+
+  function bindLeaderboardButtons() {
+    const selectors = [
+      '[data-mobile-nav="leaderboard"]',
+      '[onclick*="openAdaptiveLeaderboard"]',
+      '[onclick*="openStandaloneLeaderboard"]'
+    ];
+
+    document.querySelectorAll(selectors.join(",")).forEach((oldButton) => {
+      if (oldButton.dataset.leaderboardPageV4 === "1") return;
+      const button = oldButton.cloneNode(true);
+      button.dataset.leaderboardPageV4 = "1";
+      button.removeAttribute("onclick");
+      button.removeAttribute("data-nav-freeze-fixed");
+      button.addEventListener("click", openLeaderboardPage, true);
+
+      const label = button.querySelector("span");
+      if (label) {
+        label.textContent = button.closest("#adaptive-mobile-bottom-nav") ? "Xếp hạng" : "Bảng xếp hạng";
+      }
+      oldButton.replaceWith(button);
+    });
+  }
+
+  window.openLeaderboardPage = openLeaderboardPage;
+  window.openAdaptiveLeaderboard = openLeaderboardPage;
+  window.openStandaloneLeaderboard = openLeaderboardPage;
+
+  function initialize() {
+    createLeaderboardPage();
+    closeLegacyLeaderboardLayers();
+    bindLeaderboardButtons();
+
+    const observer = new MutationObserver(() => bindLeaderboardButtons());
+    observer.observe(document.body, { childList: true, subtree: true });
+    setTimeout(bindLeaderboardButtons, 250);
+    setTimeout(bindLeaderboardButtons, 900);
+  }
+
+  window.addEventListener("resize", sizeListToFiveRows, { passive: true });
+  window.visualViewport?.addEventListener("resize", sizeListToFiveRows, { passive: true });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  } else {
+    initialize();
+  }
+})();
+</script>
+
 </body>
 </html>
