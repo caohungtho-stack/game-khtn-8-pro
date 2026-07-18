@@ -2869,21 +2869,7 @@ if (typeof topicBank === 'undefined' || !topicBank) {
           <div class="selection-box" id="mastery-summary-box">Thành tích chủ đề sẽ hiển thị ở đây.</div>
           <div class="topic-map-actions"><button class="topic-map-btn" type="button" onclick="openTopicMapModal()">🗺️ Xem bản đồ 46 chủ đề</button></div>
           <div class="inventory-toolbar"><button class="inventory-btn" type="button" onclick="openInventoryModal()">🎒 Túi đồ 26 ô</button></div>
-          <div class="leaderboard-panel">
-            <div class="leaderboard-head">
-              <div>
-                <div class="leaderboard-title">🏆 Bảng xếp hạng Top 100</div>
-                <div id="leaderboard-status-start" class="leaderboard-status">Đang kiểm tra kết nối bảng online...</div>
-              </div>
-              <div class="leaderboard-actions">
-                <button class="leaderboard-btn secondary" type="button" onclick="refreshLeaderboard()">🔄 Làm mới bảng</button>
-                <button class="leaderboard-btn secondary" type="button" onclick="configureLeaderboardWebApp()">🔗 Cấu hình link Apps Script</button>
-                <button class="leaderboard-btn" type="button" onclick="showLeaderboardSetupHelp()">⚙️ Cách bật online miễn phí</button>
-              </div>
-            </div>
-            <div id="leaderboard-note-start" class="leaderboard-note">Top 100 sẽ đọc trực tiếp từ Google Sheets online mới. Nếu mất mạng hoặc bảng chưa cấp quyền xem, game vẫn dùng dữ liệu trên máy.</div>
-            <div id="leaderboard-list-start" class="leaderboard-list"></div>
-          </div>
+          
         </div>
       </div>
 
@@ -2958,19 +2944,7 @@ if (typeof topicBank === 'undefined' || !topicBank) {
           </div>
 
           
-          <div class="leaderboard-panel">
-            <div class="leaderboard-head">
-              <div>
-                <div class="leaderboard-title">📊 Top 100 mới nhất</div>
-                <div id="leaderboard-status-result" class="leaderboard-status">Đang kiểm tra kết nối bảng online...</div>
-              </div>
-              <div class="leaderboard-actions">
-                <button class="leaderboard-btn secondary" type="button" onclick="refreshLeaderboard()">🔄 Cập nhật top</button>
-              </div>
-            </div>
-            <div id="leaderboard-note-result" class="leaderboard-note">Sau mỗi lượt chơi, kết quả tốt nhất luôn được lưu trên máy. Google Sheets được dùng để đọc bảng thành tích chung; ghi online cần Apps Script riêng.</div>
-            <div id="leaderboard-list-result" class="leaderboard-list"></div>
-          </div>
+          
 
 <div class="share-card">
             📸 Hãy chụp màn hình kết quả này và gửi qua Zalo để khoe thành tích. Càng nhiều huy hiệu, càng đáng tự hào!
@@ -2983,6 +2957,39 @@ if (typeof topicBank === 'undefined' || !topicBank) {
           </div>
         </div>
       </div>
+
+
+      <!-- KHTN8_LEADERBOARD_CLASSIC_STATIC_PAGE_V5_START
+           Đây là trang Bảng xếp hạng riêng. Có thể chỉnh tiêu đề, nút và nội dung ngay tại khối HTML này. -->
+      <div id="leaderboard-screen" class="screen" aria-label="Trang bảng xếp hạng">
+        <div class="leaderboard-page-shell">
+          <div class="leaderboard-panel leaderboard-page-panel">
+            <div class="leaderboard-head">
+              <div>
+                <div class="leaderboard-title">🏆 Bảng xếp hạng Top 100</div>
+                <div id="leaderboard-status-page" class="leaderboard-status" aria-live="polite">Sẵn sàng hiển thị bảng xếp hạng.</div>
+              </div>
+              <div class="leaderboard-actions">
+                <button id="leaderboard-page-refresh" class="leaderboard-btn secondary" type="button">🔄 Làm mới bảng</button>
+                <button class="leaderboard-btn secondary" type="button" onclick="configureLeaderboardWebApp()">🔗 Cấu hình online</button>
+                <button class="leaderboard-btn" type="button" onclick="showLeaderboardSetupHelp()">⚙️ Hướng dẫn</button>
+                <button id="leaderboard-page-home" class="leaderboard-btn leaderboard-home-btn" type="button">🏠 Trang chủ</button>
+              </div>
+            </div>
+
+            <div id="leaderboard-note-page" class="leaderboard-note">
+              Bảng xếp hạng chỉ xuất hiện khi bấm nút “Bảng xếp hạng”. Danh sách hiển thị 5 người đầu; cuộn xuống để xem các vị trí còn lại.
+            </div>
+
+            <div class="leaderboard-page-list-caption">
+              <span>🏅 Danh sách thành tích</span>
+              <span>Hiển thị 5 người • cuộn để xem thêm</span>
+            </div>
+            <div id="leaderboard-list-page" class="leaderboard-list" tabindex="0" aria-label="Danh sách xếp hạng người chơi"></div>
+          </div>
+        </div>
+      </div>
+      <!-- KHTN8_LEADERBOARD_CLASSIC_STATIC_PAGE_V5_END -->
 
       <footer>Game trắc nghiệm KHTN 8 PRO - Thầy Cao Hùng Thọ - Trường THCS Tân Hóa © 2026 · Perfect fix 2026-04-25</footer>
     </div>
@@ -3617,6 +3624,7 @@ function saveLocalLeaderboardEntry(entry) {
     leaderboardCache = mergeLeaderboardEntries(rows);
     renderLeaderboardList("leaderboard-list-start", leaderboardCache);
     renderLeaderboardList("leaderboard-list-result", leaderboardCache);
+    renderLeaderboardList("leaderboard-list-page", leaderboardCache);
   }
 }
 
@@ -3924,14 +3932,14 @@ function renderLeaderboardList(targetId, rows) {
 }
 
 function updateLeaderboardStatus(message) {
-  ["leaderboard-status-start","leaderboard-status-result"].forEach((id) => {
+  ["leaderboard-status-start","leaderboard-status-result","leaderboard-status-page"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.innerText = message;
   });
 }
 
 function updateLeaderboardNote(message) {
-  ["leaderboard-note-start","leaderboard-note-result"].forEach((id) => {
+  ["leaderboard-note-start","leaderboard-note-result","leaderboard-note-page"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.innerText = message;
   });
@@ -3945,7 +3953,7 @@ async function refreshLeaderboard() {
     updateLeaderboardStatus("Đang tải bảng xếp hạng trực tuyến từ Google Sheets...");
     updateLeaderboardNote("Bảng xếp hạng chung chỉ dùng dữ liệu tải trực tiếp từ Google Sheets; dữ liệu LocalStorage không được trộn vào bảng online.");
 
-    ["leaderboard-list-start", "leaderboard-list-result"].forEach((id) => {
+    ["leaderboard-list-start", "leaderboard-list-result", "leaderboard-list-page"].forEach((id) => {
       const box = document.getElementById(id);
       if (box) box.innerHTML = `<div class="leaderboard-note">⏳ Đang tải dữ liệu bảng xếp hạng trực tuyến...</div>`;
     });
@@ -3983,6 +3991,7 @@ async function refreshLeaderboard() {
   leaderboardCache = rows;
   renderLeaderboardList("leaderboard-list-start", rows);
   renderLeaderboardList("leaderboard-list-result", rows);
+  renderLeaderboardList("leaderboard-list-page", rows);
 }
 
 function buildLeaderboardEntry(profile, percent, total) {
@@ -12950,9 +12959,10 @@ button, input, select, textarea { max-width: 100%; }
 <!-- KHTN8_MOBILE_TITLES_GIFT_STANDALONE_BXH_V3_END -->
 
 
-<!-- KHTN8_LEADERBOARD_SEPARATE_PAGE_V4 -->
-<style id="khtn8-leaderboard-page-v4-style">
-  /* Các bảng cũ trong trang chủ/kết quả và cửa sổ nổi cũ được ẩn hoàn toàn. */
+
+<!-- KHTN8_LEADERBOARD_CLASSIC_SEPARATE_PAGE_V5 -->
+<style id="khtn8-leaderboard-classic-page-v5-style">
+  /* Chỉ dùng một bảng duy nhất: bảng tĩnh trong trang BXH riêng. */
   #start-screen .leaderboard-panel,
   #result-screen .leaderboard-panel,
   #khtn8-standalone-bxh,
@@ -12962,386 +12972,171 @@ button, input, select, textarea { max-width: 100%; }
   }
 
   #leaderboard-screen {
-    padding: 2px 0 8px;
-  }
-
-  #leaderboard-screen .leaderboard-page-shell {
-    width: min(100%, 1120px);
-    margin: 0 auto;
-    border: 1.5px solid #dbeafe;
-    border-radius: 26px;
-    overflow: hidden;
-    background: linear-gradient(145deg, #fffdf2 0%, #ffffff 44%, #eff6ff 100%);
-    box-shadow: 0 18px 46px rgba(15, 23, 42, .14);
-  }
-
-  #leaderboard-screen .leaderboard-page-hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 16px;
-    padding: clamp(18px, 3vw, 34px);
-    background:
-      radial-gradient(circle at 8% 15%, rgba(253, 230, 138, .72), transparent 32%),
-      radial-gradient(circle at 92% 5%, rgba(191, 219, 254, .72), transparent 34%),
-      linear-gradient(135deg, #fff7d6, #ffffff 56%, #eef2ff);
-    border-bottom: 1.5px solid #e2e8f0;
-  }
-
-  #leaderboard-screen .leaderboard-page-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    width: fit-content;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #fef3c7;
-    color: #92400e;
-    font-size: .76rem;
-    font-weight: 900;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-  }
-
-  #leaderboard-screen .leaderboard-page-title {
-    margin: 9px 0 5px;
-    color: #0f172a;
-    font-size: clamp(1.45rem, 4vw, 2.45rem);
-    line-height: 1.12;
-    font-weight: 900;
-    letter-spacing: -.03em;
-  }
-
-  #leaderboard-screen .leaderboard-page-subtitle {
-    max-width: 720px;
-    color: #475569;
-    font-size: clamp(.84rem, 1.7vw, 1rem);
-    line-height: 1.55;
-    font-weight: 700;
-  }
-
-  #leaderboard-screen .leaderboard-page-trophy {
-    width: clamp(76px, 12vw, 126px);
-    height: clamp(76px, 12vw, 126px);
-    display: grid;
-    place-items: center;
-    border-radius: 30px;
-    background: linear-gradient(145deg, #fef3c7, #ffffff);
-    border: 2px solid #fbbf24;
-    font-size: clamp(3.1rem, 8vw, 6rem);
-    box-shadow: 0 14px 30px rgba(245, 158, 11, .22);
-  }
-
-  #leaderboard-screen .leaderboard-page-body {
-    padding: clamp(12px, 2.5vw, 24px);
-  }
-
-  #leaderboard-screen .leaderboard-page-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-
-  #leaderboard-screen .leaderboard-page-status {
-    flex: 1 1 260px;
-    min-height: 42px;
-    display: flex;
-    align-items: center;
-    padding: 9px 13px;
-    border-radius: 14px;
-    background: #eff6ff;
-    border: 1.5px solid #bfdbfe;
-    color: #1e3a8a;
-    font-size: .82rem;
-    line-height: 1.4;
-    font-weight: 800;
-  }
-
-  #leaderboard-screen .leaderboard-page-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  #leaderboard-screen .leaderboard-page-btn {
-    min-height: 42px;
-    padding: 9px 14px;
-    border: 0;
-    border-radius: 14px;
-    color: #fff;
-    font-size: .84rem;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 0 7px 17px rgba(15, 23, 42, .13);
-  }
-
-  #leaderboard-screen .leaderboard-page-btn.refresh {
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-  }
-
-  #leaderboard-screen .leaderboard-page-btn.home {
-    background: linear-gradient(135deg, #64748b, #334155);
-  }
-
-  #leaderboard-screen .leaderboard-page-metrics {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 9px;
-    margin-bottom: 12px;
-  }
-
-  #leaderboard-screen .leaderboard-page-metric {
+    width: 100%;
     min-width: 0;
-    padding: 11px 13px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, .92);
   }
-
-  #leaderboard-screen .leaderboard-page-metric-label {
-    color: #64748b;
-    font-size: .69rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: .045em;
+  #leaderboard-screen .leaderboard-page-shell {
+    width: 100%;
+    padding: 4px 0 8px;
   }
-
-  #leaderboard-screen .leaderboard-page-metric-value {
-    margin-top: 4px;
-    overflow: hidden;
-    color: #0f172a;
-    font-size: clamp(.9rem, 2vw, 1.15rem);
-    line-height: 1.25;
-    font-weight: 900;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  #leaderboard-screen .leaderboard-page-panel {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: clamp(13px, 2vw, 20px);
+    border-radius: var(--radius-xl);
   }
-
-  #leaderboard-screen .leaderboard-page-list-wrap {
-    border: 1.5px solid #dbeafe;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, .94);
-    overflow: hidden;
+  #leaderboard-screen .leaderboard-head {
+    flex: 0 0 auto;
   }
-
+  #leaderboard-screen .leaderboard-title {
+    font-size: clamp(1.12rem, 2.4vw, 1.55rem);
+  }
+  #leaderboard-screen .leaderboard-home-btn {
+    background: linear-gradient(135deg,#64748b,#334155);
+  }
   #leaderboard-screen .leaderboard-page-list-caption {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
-    padding: 10px 13px;
+    margin: 4px 0 9px;
     color: #334155;
-    background: linear-gradient(135deg, #f8fafc, #eff6ff);
-    border-bottom: 1px solid #dbeafe;
-    font-size: .78rem;
+    font-size: .82rem;
     font-weight: 900;
   }
-
-  #leaderboard-list-page {
+  #leaderboard-screen #leaderboard-list-page {
     display: grid;
-    gap: 7px;
-    height: var(--leaderboard-five-row-height, 430px);
-    max-height: min(58dvh, 560px);
+    gap: 8px;
+    height: var(--leaderboard-v5-five-height, 480px);
+    max-height: min(62dvh, 590px);
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 10px;
-    scroll-behavior: smooth;
     overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+    padding: 2px 4px 10px 0;
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
   }
-
-  #leaderboard-list-page .leaderboard-summary {
-    display: none !important;
+  #leaderboard-screen #leaderboard-list-page .leaderboard-summary {
+    margin-top: 0;
   }
-
-  #leaderboard-list-page .leaderboard-row.head {
-    position: sticky;
-    top: -10px;
-    z-index: 3;
-  }
-
-  #leaderboard-list-page::-webkit-scrollbar {
-    width: 7px;
-  }
-
-  #leaderboard-list-page::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: rgba(59, 130, 246, .35);
+  #leaderboard-screen #leaderboard-list-page .leaderboard-row:not(.head) {
+    margin: 0;
   }
 
   @media (max-width: 768px) {
-    #leaderboard-screen {
-      padding: 0 0 calc(76px + env(safe-area-inset-bottom));
-    }
-
     #leaderboard-screen .leaderboard-page-shell {
-      border-radius: 20px;
+      padding: 0;
     }
-
-    #leaderboard-screen .leaderboard-page-hero {
-      grid-template-columns: minmax(0, 1fr) 72px;
-      gap: 10px;
-      padding: 15px 13px;
+    #leaderboard-screen .leaderboard-page-panel {
+      padding: 11px 9px;
+      border-radius: 18px;
     }
-
-    #leaderboard-screen .leaderboard-page-trophy {
-      width: 68px;
-      height: 68px;
-      border-radius: 21px;
-      font-size: 3rem;
+    #leaderboard-screen .leaderboard-head {
+      align-items: flex-start;
+      gap: 8px;
     }
-
-    #leaderboard-screen .leaderboard-page-title {
-      margin-top: 6px;
-      font-size: 1.35rem;
-    }
-
-    #leaderboard-screen .leaderboard-page-subtitle {
-      font-size: .76rem;
-    }
-
-    #leaderboard-screen .leaderboard-page-body {
-      padding: 9px;
-    }
-
-    #leaderboard-screen .leaderboard-page-toolbar {
-      align-items: stretch;
-      margin-bottom: 8px;
-    }
-
-    #leaderboard-screen .leaderboard-page-actions {
-      width: 100%;
+    #leaderboard-screen .leaderboard-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-    }
-
-    #leaderboard-screen .leaderboard-page-btn {
       width: 100%;
-      padding: 8px 9px;
-      font-size: .76rem;
+      gap: 6px;
     }
-
-    #leaderboard-screen .leaderboard-page-status {
-      min-height: 38px;
+    #leaderboard-screen .leaderboard-actions .leaderboard-btn {
+      min-height: 40px;
+      padding: 8px 7px;
       font-size: .72rem;
     }
-
-    #leaderboard-screen .leaderboard-page-metrics {
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
-    #leaderboard-screen .leaderboard-page-metric {
-      padding: 8px 7px;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    #leaderboard-screen .leaderboard-page-metric-label {
-      font-size: .56rem;
-    }
-
-    #leaderboard-screen .leaderboard-page-metric-value {
-      font-size: .76rem;
-    }
-
-    #leaderboard-screen .leaderboard-page-list-caption {
+    #leaderboard-screen .leaderboard-note {
       padding: 8px 9px;
-      font-size: .68rem;
+      font-size: .72rem;
+      line-height: 1.4;
     }
-
-    #leaderboard-list-page {
+    #leaderboard-screen .leaderboard-page-list-caption {
+      font-size: .7rem;
+      margin: 2px 1px 7px;
+    }
+    #leaderboard-screen #leaderboard-list-page {
+      gap: 6px;
+      max-height: min(64dvh, 550px);
+      padding-right: 1px;
+    }
+    #leaderboard-screen #leaderboard-list-page .leaderboard-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 5px;
-      padding: 7px;
-      max-height: 57dvh;
+      margin-bottom: 1px;
     }
-
-    #leaderboard-list-page .leaderboard-row.head {
+    #leaderboard-screen #leaderboard-list-page .leaderboard-summary-chip {
+      padding: 6px 7px;
+      font-size: .64rem;
+    }
+    #leaderboard-screen #leaderboard-list-page .leaderboard-row.head {
       display: none !important;
     }
-
-    #leaderboard-list-page .leaderboard-row:not(.head) {
+    #leaderboard-screen #leaderboard-list-page .leaderboard-row:not(.head) {
       display: grid !important;
-      grid-template-columns: 42px minmax(0, 1fr) auto auto !important;
+      grid-template-columns: 44px minmax(0,1fr) auto auto !important;
       align-items: center !important;
-      gap: 5px !important;
-      min-height: 58px;
+      gap: 6px !important;
+      min-height: 60px;
       padding: 7px !important;
-      margin: 0 !important;
       border-radius: 13px !important;
     }
-
-    #leaderboard-list-page .leaderboard-rank {
+    #leaderboard-screen #leaderboard-list-page .leaderboard-rank {
       margin: 0 !important;
-      gap: 2px;
-      font-size: .72rem;
+      gap: 3px;
+      font-size: .78rem;
     }
-
-    #leaderboard-list-page .leaderboard-rank-icon {
-      width: 23px;
-      height: 23px;
-      font-size: .8rem;
+    #leaderboard-screen #leaderboard-list-page .leaderboard-rank-icon {
+      width: 24px;
+      height: 24px;
+      font-size: .86rem;
     }
-
-    #leaderboard-list-page .leaderboard-player-name {
-      font-size: .75rem;
+    #leaderboard-screen #leaderboard-list-page .leaderboard-player-name {
+      font-size: .78rem;
       white-space: nowrap !important;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    #leaderboard-list-page .leaderboard-meta {
-      font-size: .57rem;
+    #leaderboard-screen #leaderboard-list-page .leaderboard-meta {
+      font-size: .59rem;
       white-space: nowrap !important;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    #leaderboard-list-page .leaderboard-topic-cell,
-    #leaderboard-list-page .leaderboard-mode-cell,
-    #leaderboard-list-page .leaderboard-inline-meta {
+    #leaderboard-screen #leaderboard-list-page .leaderboard-topic-cell,
+    #leaderboard-screen #leaderboard-list-page .leaderboard-mode-cell,
+    #leaderboard-screen #leaderboard-list-page .leaderboard-inline-meta {
       display: none !important;
     }
-
-    #leaderboard-list-page .leaderboard-pill {
+    #leaderboard-screen #leaderboard-list-page .leaderboard-pill {
       margin: 0 !important;
       padding: 4px 5px;
-      font-size: .6rem;
+      font-size: .62rem;
       white-space: nowrap;
     }
   }
 
   @media (max-width: 380px) {
-    #leaderboard-screen .leaderboard-page-hero {
-      grid-template-columns: minmax(0, 1fr) 58px;
+    #leaderboard-screen .leaderboard-actions {
+      grid-template-columns: 1fr;
     }
-    #leaderboard-screen .leaderboard-page-trophy {
-      width: 56px;
-      height: 56px;
-      font-size: 2.45rem;
+    #leaderboard-screen .leaderboard-page-list-caption span:last-child {
+      display: none;
     }
   }
 </style>
-<script id="khtn8-leaderboard-page-v4-script">
+<script id="khtn8-leaderboard-classic-page-v5-script">
 (() => {
   "use strict";
 
   let refreshRequest = 0;
+  let bindFrame = 0;
 
-  function closeLegacyLeaderboardLayers() {
-    try { window.closeStandaloneLeaderboard?.(); } catch (_) {}
-    document.getElementById("khtn8-standalone-bxh")?.classList.remove("active");
-    document.getElementById("khtn8-leaderboard-backdrop")?.classList.remove("active");
-    document.querySelectorAll(".leaderboard-panel.mobile-panel-open, .leaderboard-panel.khtn8-leaderboard-modal")
-      .forEach((panel) => panel.classList.remove("mobile-panel-open", "khtn8-leaderboard-modal"));
-    document.body.classList.remove("khtn8-leaderboard-modal-open");
-    document.body.style.removeProperty("overflow");
-  }
-
-  function getRows() {
+  function rowsSafely() {
     try {
       const rows = window.getLeaderboardRowsForCurrentSource?.();
       if (Array.isArray(rows)) return rows;
@@ -13358,159 +13153,77 @@ button, input, select, textarea { max-width: 100%; }
     return [];
   }
 
-  function createLeaderboardPage() {
-    let screen = document.getElementById("leaderboard-screen");
-    if (screen) return screen;
-
-    screen = document.createElement("div");
-    screen.id = "leaderboard-screen";
-    screen.className = "screen";
-    screen.setAttribute("aria-label", "Trang bảng xếp hạng");
-    screen.innerHTML = `
-      <section class="leaderboard-page-shell">
-        <header class="leaderboard-page-hero">
-          <div>
-            <div class="leaderboard-page-kicker">🏅 Thành tích toàn trường</div>
-            <h2 class="leaderboard-page-title">Bảng Xếp Hạng KHTN 8</h2>
-            <div class="leaderboard-page-subtitle">Theo dõi những người chơi dẫn đầu. Danh sách hiển thị 5 vị trí đầu tiên; cuộn xuống để xem các vị trí còn lại.</div>
-          </div>
-          <div class="leaderboard-page-trophy" aria-hidden="true">🏆</div>
-        </header>
-
-        <div class="leaderboard-page-body">
-          <div class="leaderboard-page-toolbar">
-            <div id="leaderboard-page-status" class="leaderboard-page-status" aria-live="polite">Sẵn sàng hiển thị bảng xếp hạng.</div>
-            <div class="leaderboard-page-actions">
-              <button id="leaderboard-page-refresh" class="leaderboard-page-btn refresh" type="button">🔄 Làm mới</button>
-              <button id="leaderboard-page-home" class="leaderboard-page-btn home" type="button">🏠 Trang chủ</button>
-            </div>
-          </div>
-
-          <div class="leaderboard-page-metrics" aria-label="Tóm tắt bảng xếp hạng">
-            <div class="leaderboard-page-metric">
-              <div class="leaderboard-page-metric-label">Người dẫn đầu</div>
-              <div id="leaderboard-page-top-name" class="leaderboard-page-metric-value">Chưa có</div>
-            </div>
-            <div class="leaderboard-page-metric">
-              <div class="leaderboard-page-metric-label">Số người chơi</div>
-              <div id="leaderboard-page-count" class="leaderboard-page-metric-value">0</div>
-            </div>
-            <div class="leaderboard-page-metric">
-              <div class="leaderboard-page-metric-label">Level cao nhất</div>
-              <div id="leaderboard-page-max-level" class="leaderboard-page-metric-value">Lv 1</div>
-            </div>
-          </div>
-
-          <div class="leaderboard-page-list-wrap">
-            <div class="leaderboard-page-list-caption">
-              <span>🏆 Danh sách xếp hạng</span>
-              <span>Hiển thị 5 người • cuộn để xem thêm</span>
-            </div>
-            <div id="leaderboard-list-page" class="leaderboard-list" tabindex="0"></div>
-          </div>
-        </div>
-      </section>`;
-
-    const container = document.querySelector(".container");
-    const footer = container?.querySelector(":scope > footer");
-    if (footer) footer.insertAdjacentElement("beforebegin", screen);
-    else container?.appendChild(screen);
-
-    screen.querySelector("#leaderboard-page-refresh")?.addEventListener("click", () => refreshPage(true));
-    screen.querySelector("#leaderboard-page-home")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      if (typeof window.goHome === "function") window.goHome(event);
-      else activateScreen("start-screen");
-    });
-    return screen;
+  function closeOldLeaderboardUI() {
+    document.getElementById("khtn8-standalone-bxh")?.classList.remove("active");
+    document.getElementById("khtn8-leaderboard-backdrop")?.classList.remove("active");
+    document.body.classList.remove("khtn8-leaderboard-modal-open");
+    document.body.style.removeProperty("overflow");
+    document.querySelectorAll(".leaderboard-panel.mobile-panel-open, .leaderboard-panel.khtn8-leaderboard-modal")
+      .forEach((panel) => panel.classList.remove("mobile-panel-open", "khtn8-leaderboard-modal"));
   }
 
-  function activateScreen(id) {
+  function activateScreen(screenId) {
     document.querySelectorAll(".screen").forEach((screen) => {
-      screen.classList.toggle("active", screen.id === id);
+      screen.classList.toggle("active", screen.id === screenId);
     });
-    document.body.dataset.screen = id.replace("-screen", "");
-    try { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }
+    document.body.dataset.screen = screenId.replace("-screen", "");
+    try { window.scrollTo({ top:0, left:0, behavior:"auto" }); }
     catch (_) { window.scrollTo(0, 0); }
   }
 
-  function updateMetrics(rows) {
-    const top = rows[0] || null;
-    const maxLevel = rows.reduce((max, row) => Math.max(max, Number(row?.level) || 1), 1);
-    const topName = document.getElementById("leaderboard-page-top-name");
-    const count = document.getElementById("leaderboard-page-count");
-    const level = document.getElementById("leaderboard-page-max-level");
-    if (topName) topName.textContent = top?.name || "Chưa có";
-    if (count) count.textContent = String(rows.length);
-    if (level) level.textContent = `Lv ${maxLevel}`;
+  function renderRows(message) {
+    const rows = rowsSafely();
+    try {
+      window.renderLeaderboardList?.("leaderboard-list-page", rows);
+    } catch (error) {
+      console.warn("[BXH V5] Không thể dựng danh sách:", error);
+      const list = document.getElementById("leaderboard-list-page");
+      if (list) list.innerHTML = '<div class="leaderboard-note">Không thể hiển thị bảng xếp hạng lúc này.</div>';
+    }
+    const status = document.getElementById("leaderboard-status-page");
+    if (status && message) status.textContent = message;
+    sizeToFiveRows();
+    return rows;
   }
 
-  function sizeListToFiveRows() {
+  function sizeToFiveRows() {
     const list = document.getElementById("leaderboard-list-page");
     if (!list) return;
     requestAnimationFrame(() => {
       const rows = Array.from(list.querySelectorAll(".leaderboard-row:not(.head)"));
       if (!rows.length) {
-        list.style.setProperty("--leaderboard-five-row-height", "250px");
+        list.style.setProperty("--leaderboard-v5-five-height", "270px");
         return;
       }
       const fifth = rows[Math.min(4, rows.length - 1)];
-      const header = list.querySelector(".leaderboard-row.head");
       const desired = Math.ceil(fifth.offsetTop + fifth.offsetHeight + 10);
       const viewport = window.visualViewport?.height || window.innerHeight || 760;
-      const maxAllowed = Math.max(260, Math.floor(viewport * .58));
-      const minAllowed = header ? Math.ceil(header.offsetHeight + rows[0].offsetHeight * Math.min(5, rows.length) + 34) : 245;
-      list.style.setProperty("--leaderboard-five-row-height", `${Math.min(Math.max(desired, Math.min(minAllowed, maxAllowed)), maxAllowed)}px`);
+      const limit = Math.max(280, Math.floor(viewport * .62));
+      list.style.setProperty("--leaderboard-v5-five-height", `${Math.min(desired, limit)}px`);
       list.scrollTop = 0;
     });
   }
 
-  function renderPage(rows, statusText) {
-    const list = document.getElementById("leaderboard-list-page");
-    const status = document.getElementById("leaderboard-page-status");
-    if (!list) return;
-
-    try {
-      if (typeof window.renderLeaderboardList === "function") {
-        window.renderLeaderboardList(list.id, rows);
-      } else if (!rows.length) {
-        list.innerHTML = '<div class="leaderboard-note">Chưa có dữ liệu thành tích.</div>';
-      }
-    } catch (error) {
-      console.warn("[Trang BXH] Không thể dựng danh sách:", error);
-      list.innerHTML = '<div class="leaderboard-note">Không thể hiển thị bảng xếp hạng lúc này.</div>';
-    }
-
-    updateMetrics(rows);
-    if (status) status.textContent = statusText || `Đang hiển thị ${rows.length} người chơi • cuộn xuống để xem thêm.`;
-    sizeListToFiveRows();
-  }
-
-  async function refreshPage(forceOnline = false) {
+  async function refreshPage(force = false) {
     const requestId = ++refreshRequest;
-    const localRows = getRows();
-    renderPage(localRows, forceOnline ? "Đang kiểm tra và cập nhật dữ liệu mới..." : "Đang hiển thị dữ liệu bảng xếp hạng.");
+    renderRows(force ? "Đang kiểm tra dữ liệu bảng xếp hạng mới..." : "Đang hiển thị dữ liệu bảng xếp hạng.");
 
-    if (typeof window.refreshLeaderboard !== "function") return localRows;
-
+    if (typeof window.refreshLeaderboard !== "function") return;
     try {
       const timeout = new Promise((resolve) => setTimeout(() => resolve("timeout"), 4500));
       const result = await Promise.race([
         Promise.resolve().then(() => window.refreshLeaderboard()),
         timeout
       ]);
-      if (requestId !== refreshRequest) return result;
-      const rows = getRows();
-      renderPage(rows, result === "timeout"
+      if (requestId !== refreshRequest) return;
+      renderRows(result === "timeout"
         ? "Mạng phản hồi chậm • đang hiển thị dữ liệu đã lưu trên máy."
-        : `Đã cập nhật bảng xếp hạng • tổng ${rows.length} người chơi.`);
-      return result;
+        : "Đã cập nhật bảng xếp hạng.");
     } catch (error) {
-      console.warn("[Trang BXH] Làm mới thất bại:", error);
+      console.warn("[BXH V5] Làm mới thất bại:", error);
       if (requestId === refreshRequest) {
-        renderPage(getRows(), "Không tải được dữ liệu online • đang hiển thị dữ liệu trên máy.");
+        renderRows("Không tải được dữ liệu online • đang hiển thị dữ liệu trên máy.");
       }
-      return localRows;
     }
   }
 
@@ -13519,42 +13232,57 @@ button, input, select, textarea { max-width: 100%; }
     event?.stopPropagation?.();
     event?.stopImmediatePropagation?.();
 
-    closeLegacyLeaderboardLayers();
-    createLeaderboardPage();
-
+    closeOldLeaderboardUI();
     try {
       if (typeof RealTimeTimer !== "undefined" && RealTimeTimer?.stop) RealTimeTimer.stop(false);
     } catch (_) {}
 
     activateScreen("leaderboard-screen");
-    renderPage(getRows(), "Đang hiển thị bảng xếp hạng.");
+    renderRows("Đang hiển thị bảng xếp hạng.");
     requestAnimationFrame(() => {
-      document.getElementById("leaderboard-page-refresh")?.focus?.({ preventScroll: true });
-      refreshPage(false);
+      document.getElementById("leaderboard-page-refresh")?.focus?.({ preventScroll:true });
+      setTimeout(() => refreshPage(false), 0);
     });
     return false;
   }
 
+  function returnHome(event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    refreshRequest += 1;
+    closeOldLeaderboardUI();
+    if (typeof window.goHome === "function") return window.goHome(event);
+    activateScreen("start-screen");
+    return false;
+  }
+
+  function isLeaderboardButton(button) {
+    if (!(button instanceof HTMLElement)) return false;
+    if (button.id === "leaderboard-page-refresh" || button.closest("#leaderboard-screen")) return false;
+    const onclick = button.getAttribute("onclick") || "";
+    const nav = button.dataset.mobileNav || "";
+    const label = (button.querySelector("span")?.textContent || button.textContent || "")
+      .replace(/[🏆📊🏅⭐]/g, "")
+      .trim()
+      .toLowerCase();
+    return nav === "leaderboard"
+      || /openAdaptiveLeaderboard|openStandaloneLeaderboard|openLeaderboardPage/.test(onclick)
+      || ["bxh", "bảng xếp hạng", "xếp hạng"].includes(label);
+  }
+
   function bindLeaderboardButtons() {
-    const selectors = [
-      '[data-mobile-nav="leaderboard"]',
-      '[onclick*="openAdaptiveLeaderboard"]',
-      '[onclick*="openStandaloneLeaderboard"]'
-    ];
-
-    document.querySelectorAll(selectors.join(",")).forEach((oldButton) => {
-      if (oldButton.dataset.leaderboardPageV4 === "1") return;
-      const button = oldButton.cloneNode(true);
-      button.dataset.leaderboardPageV4 = "1";
-      button.removeAttribute("onclick");
-      button.removeAttribute("data-nav-freeze-fixed");
-      button.addEventListener("click", openLeaderboardPage, true);
-
-      const label = button.querySelector("span");
-      if (label) {
-        label.textContent = button.closest("#adaptive-mobile-bottom-nav") ? "Xếp hạng" : "Bảng xếp hạng";
-      }
-      oldButton.replaceWith(button);
+    cancelAnimationFrame(bindFrame);
+    bindFrame = requestAnimationFrame(() => {
+      document.querySelectorAll("button").forEach((oldButton) => {
+        if (!isLeaderboardButton(oldButton) || oldButton.dataset.leaderboardClassicV5 === "1") return;
+        const button = oldButton.cloneNode(true);
+        button.dataset.leaderboardClassicV5 = "1";
+        button.dataset.mobileNav = "leaderboard";
+        button.removeAttribute("onclick");
+        button.removeAttribute("data-nav-freeze-fixed");
+        button.addEventListener("click", openLeaderboardPage, true);
+        oldButton.replaceWith(button);
+      });
     });
   }
 
@@ -13563,21 +13291,22 @@ button, input, select, textarea { max-width: 100%; }
   window.openStandaloneLeaderboard = openLeaderboardPage;
 
   function initialize() {
-    createLeaderboardPage();
-    closeLegacyLeaderboardLayers();
+    closeOldLeaderboardUI();
+    document.getElementById("leaderboard-page-refresh")?.addEventListener("click", () => refreshPage(true));
+    document.getElementById("leaderboard-page-home")?.addEventListener("click", returnHome);
     bindLeaderboardButtons();
 
-    const observer = new MutationObserver(() => bindLeaderboardButtons());
-    observer.observe(document.body, { childList: true, subtree: true });
+    const observer = new MutationObserver(bindLeaderboardButtons);
+    observer.observe(document.body, { childList:true, subtree:true });
     setTimeout(bindLeaderboardButtons, 250);
     setTimeout(bindLeaderboardButtons, 900);
   }
 
-  window.addEventListener("resize", sizeListToFiveRows, { passive: true });
-  window.visualViewport?.addEventListener("resize", sizeListToFiveRows, { passive: true });
+  window.addEventListener("resize", sizeToFiveRows, { passive:true });
+  window.visualViewport?.addEventListener("resize", sizeToFiveRows, { passive:true });
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    document.addEventListener("DOMContentLoaded", initialize, { once:true });
   } else {
     initialize();
   }
