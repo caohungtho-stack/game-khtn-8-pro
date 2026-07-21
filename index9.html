@@ -3317,12 +3317,22 @@ const STORAGE_LEADERBOARD_SESSIONS = "khtn9_pro_leaderboard_sessions_v1";
 const STORAGE_LEADERBOARD_GUARD = "khtn9_pro_leaderboard_guard_v1";
 const STORAGE_LEADERBOARD_WEBAPP_URL = "khtn9_pro_leaderboard_webapp_url_v1";
 const LEADERBOARD_CONFIG = {
-  spreadsheetId: "1JDyJZTxRqfsfvYFQGAriCZbBs7IRLsMM4FAZPOaCQYE",
+  // Google Sheet đích của bảng xếp hạng KHTN 9.
+  spreadsheetId: "1_VdZCopGSulKpzg6aHI1zlichD7RGdmKxwKUse8rvNo",
+  sheetName: "Leaderboard_KHTN9",
   sheetGid: "0",
-  defaultWebAppUrl: "",
+
+  // Sau khi triển khai Apps Script, dán link kết thúc bằng /exec vào đây.
+  // Khi đã điền, tất cả máy mở cùng file game sẽ tự động dùng chung bảng online.
+  defaultWebAppUrl: "https://script.google.com/macros/s/AKfycbzZUnph4cK2QH5FOANGK9cc4znnOZpmJyVowfIWmLGFJ7WidIauGtwY95nHmQeZi6K7lw/exec",
   legacyWebAppUrl: "",
+
   maxRows: 100,
-  publicGvizUrl: "https://docs.google.com/spreadsheets/d/1JDyJZTxRqfsfvYFQGAriCZbBs7IRLsMM4FAZPOaCQYE/gviz/tq?tqx=out:json&gid=0"
+
+  // Không bắt buộc công khai Google Sheet. Game ưu tiên đọc qua Apps Script.
+  // Chỉ đổi thành true khi bạn muốn dùng Google Visualization làm kênh dự phòng.
+  enablePublicSheetFallback: false,
+  publicGvizUrl: ""
 };
 
 const KHTN_ITEM_DB = [
@@ -3628,6 +3638,7 @@ async function fetchWithTimeout(resource, options = {}, timeoutMs = LEADERBOARD_
 }
 
 function getLeaderboardSheetGvizUrl(responseHandler = "") {
+  if (!LEADERBOARD_CONFIG.enablePublicSheetFallback) return "";
   const spreadsheetId = String(LEADERBOARD_CONFIG.spreadsheetId || "").trim();
   const sheetGid = String(LEADERBOARD_CONFIG.sheetGid ?? "0").trim() || "0";
   if (!spreadsheetId) return "";
@@ -3651,7 +3662,7 @@ function getLeaderboardSheetGvizUrl(responseHandler = "") {
 }
 
 function isOnlineLeaderboardEnabled() {
-  return !!getLeaderboardSheetGvizUrl();
+  return !!(getLeaderboardWebAppUrl() || getLeaderboardSheetGvizUrl());
 }
 
 function isOnlineLeaderboardWriteEnabled() {
@@ -4066,15 +4077,40 @@ function parseGoogleVisualizationResponse(text) {
 }
 
 async function fetchLeaderboardOnline(requestSignal) {
+  const webAppUrl = getLeaderboardWebAppUrl();
   const sheetUrl = getLeaderboardSheetGvizUrl();
-  if (!sheetUrl) {
+
+  if (!webAppUrl && !sheetUrl) {
     leaderboardOnlineState = { connected:false, attempted:false, lastError:"disabled" };
     return [];
   }
 
   const errors = [];
 
-  async function readByFetch() {
+  async function readFromAppsScript() {
+    const url = new URL(webAppUrl);
+    url.searchParams.set("action", "list");
+    url.searchParams.set("game", "KHTN9");
+    url.searchParams.set("_t", String(Date.now()));
+
+    const response = await fetchWithTimeout(url.toString(), {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      redirect: "follow",
+      signal: requestSignal
+    });
+    const text = await response.text();
+    let payload = {};
+    try { payload = JSON.parse(text || "{}"); }
+    catch (_) { throw new Error("apps_script_invalid_json"); }
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.message || `apps_script_http_${response.status}`);
+    }
+    return Array.isArray(payload?.rows) ? payload.rows : [];
+  }
+
+  async function readGvizByFetch() {
     const response = await fetchWithTimeout(sheetUrl, {
       method: "GET",
       mode: "cors",
@@ -4087,7 +4123,7 @@ async function fetchLeaderboardOnline(requestSignal) {
     return parseGoogleVisualizationResponse(text);
   }
 
-  function readByScriptInjection(timeoutMs = LEADERBOARD_FETCH_TIMEOUT_MS) {
+  function readGvizByScriptInjection(timeoutMs = LEADERBOARD_FETCH_TIMEOUT_MS) {
     return new Promise((resolve, reject) => {
       if (requestSignal?.aborted) {
         reject(new DOMException("Yêu cầu đã bị hủy.", "AbortError"));
@@ -4115,22 +4151,14 @@ async function fetchLeaderboardOnline(requestSignal) {
         handler(value);
       };
 
-      const handleAbort = () => {
-        finish(reject, new DOMException("Yêu cầu đã bị hủy.", "AbortError"));
-      };
-
-      if (requestSignal) {
-        requestSignal.addEventListener("abort", handleAbort, { once: true });
-      }
+      const handleAbort = () => finish(reject, new DOMException("Yêu cầu đã bị hủy.", "AbortError"));
+      if (requestSignal) requestSignal.addEventListener("abort", handleAbort, { once: true });
 
       window[callbackName] = (payload) => {
         try {
           if (payload?.status === "error") {
             const detail = Array.isArray(payload?.errors)
-              ? payload.errors
-                  .map((item) => item?.detailed_message || item?.message || "")
-                  .filter(Boolean)
-                  .join(" | ")
+              ? payload.errors.map((item) => item?.detailed_message || item?.message || "").filter(Boolean).join(" | ")
               : "";
             throw new Error(detail || "gviz_api_error");
           }
@@ -4144,40 +4172,25 @@ async function fetchLeaderboardOnline(requestSignal) {
       script.referrerPolicy = "no-referrer";
       script.src = getLeaderboardSheetGvizUrl(callbackName);
       script.onerror = () => finish(reject, new Error("gviz_script_load_error"));
-
-      timer = setTimeout(
-        () => finish(reject, new Error("gviz_script_timeout")),
-        Math.max(3000, Number(timeoutMs) || LEADERBOARD_FETCH_TIMEOUT_MS)
-      );
-
+      timer = setTimeout(() => finish(reject, new Error("gviz_script_timeout")), Math.max(3000, Number(timeoutMs) || LEADERBOARD_FETCH_TIMEOUT_MS));
       (document.head || document.documentElement).appendChild(script);
     });
   }
 
-  const isLocalFile = location.protocol === "file:";
-  const methods = isLocalFile
-    ? [
-        ["scriptInjection", readByScriptInjection]
-      ]
-    : [
-        ["fetch", readByFetch],
-        ["scriptInjection", readByScriptInjection]
-      ];
+  const methods = [];
+  if (webAppUrl) methods.push(["appsScript", readFromAppsScript]);
+  if (sheetUrl) {
+    if (location.protocol !== "file:") methods.push(["googleSheetFetch", readGvizByFetch]);
+    methods.push(["googleSheetScript", readGvizByScriptInjection]);
+  }
 
   for (const [transport, reader] of methods) {
     try {
       const rows = await reader();
-      leaderboardOnlineState = {
-        connected:true,
-        attempted:true,
-        lastError:"",
-        transport
-      };
+      leaderboardOnlineState = { connected:true, attempted:true, lastError:"", transport };
       return mergeLeaderboardEntries(rows);
     } catch (error) {
-      if (error?.name === "AbortError" || requestSignal?.aborted) {
-        throw error;
-      }
+      if (error?.name === "AbortError" || requestSignal?.aborted) throw error;
       errors.push(`${transport}:${String(error?.message || "network_error")}`);
     }
   }
@@ -4187,10 +4200,8 @@ async function fetchLeaderboardOnline(requestSignal) {
     attempted:true,
     lastError:errors.join(" | ") || "network_error"
   };
-  updateLeaderboardStatus("Không đọc được Google Sheets, đang dùng dữ liệu trên máy.");
-  updateLeaderboardNote(
-    "Game vẫn hoạt động bằng LocalStorage. Hãy kiểm tra mạng và bảo đảm bảng tính được chia sẻ ở chế độ bất kỳ ai có liên kết đều có thể xem."
-  );
+  updateLeaderboardStatus("Không đọc được bảng xếp hạng online, đang dùng dữ liệu trên máy.");
+  updateLeaderboardNote("Hãy kiểm tra link Apps Script /exec và quyền triển khai 'Bất kỳ ai'.");
   return [];
 }
 
@@ -4271,8 +4282,8 @@ async function refreshLeaderboard() {
   let rows = [];
 
   if (isOnlineLeaderboardEnabled()) {
-    updateLeaderboardStatus("Đang tải bảng xếp hạng trực tuyến từ Google Sheets...");
-    updateLeaderboardNote("Bảng xếp hạng chung chỉ dùng dữ liệu tải trực tiếp từ Google Sheets; dữ liệu LocalStorage không được trộn vào bảng online.");
+    updateLeaderboardStatus("Đang tải bảng xếp hạng trực tuyến...");
+    updateLeaderboardNote("Bảng xếp hạng chung ưu tiên dữ liệu từ Google Apps Script; LocalStorage chỉ là dự phòng trên từng máy.");
 
     ["leaderboard-list-start", "leaderboard-list-result", "leaderboard-list-overlay"].forEach((id) => {
       const box = document.getElementById(id);
@@ -4289,11 +4300,11 @@ async function refreshLeaderboard() {
         rows = mergeLeaderboardEntries(Array.isArray(onlineRows) ? onlineRows : []);
 
         if (rows.length) {
-          updateLeaderboardStatus("Đang hiển thị bảng xếp hạng trực tuyến từ Google Sheets.");
-          updateLeaderboardNote("Dữ liệu đang hiển thị 100% từ Google Sheets. Điểm lưu trên máy chỉ dùng làm dự phòng khi mất kết nối.");
+          updateLeaderboardStatus("Đang hiển thị bảng xếp hạng trực tuyến dùng chung.");
+          updateLeaderboardNote("Dữ liệu đang hiển thị từ bảng online dùng chung. Điểm trên máy chỉ dùng làm dự phòng khi mất kết nối.");
         } else {
-          updateLeaderboardStatus("Đã kết nối Google Sheets nhưng chưa có dữ liệu hợp lệ.");
-          updateLeaderboardNote("Bảng online đang được ưu tiên hoàn toàn; dữ liệu LocalStorage không được chèn vào khi kết nối Sheets thành công.");
+          updateLeaderboardStatus("Đã kết nối bảng online nhưng chưa có dữ liệu hợp lệ.");
+          updateLeaderboardNote("Bảng online đang được ưu tiên; dữ liệu LocalStorage không được chèn vào khi kết nối thành công.");
         }
       } else {
         rows = localRows;
@@ -4401,13 +4412,13 @@ function configureLeaderboardWebApp() {
 function showLeaderboardSetupHelp() {
   const currentUrl = getLeaderboardWebAppUrl() || "(chưa có)";
   const guide = [
-    "BẢNG XẾP HẠNG ĐANG ĐỌC TỪ GOOGLE SHEETS ID 1JDyJZTxRqfsfvYFQGAriCZbBs7IRLsMM4FAZPOaCQYE, GID 0.",
-    "BƯỚC 1: Tạo Google Sheet với các cột: name, className, topic, mode, level, xp, score, total, percent, bestStreak, sessionCode, updatedAt.",
+    "BẢNG XẾP HẠNG KHTN 9 DÙNG GOOGLE SHEET ID 1_VdZCopGSulKpzg6aHI1zlichD7RGdmKxwKUse8rvNo, TAB Leaderboard_KHTN9.",
+    "BƯỚC 1: Trong Google Sheet, tạo hoặc để Apps Script tự tạo tab Leaderboard_KHTN9.",
     "BƯỚC 2: Vào Extensions > Apps Script và dán mẫu code Apps Script Top 100 ở cuối file game này.",
     "BƯỚC 3: Deploy > New deployment > Web app > Execute as Me > Who has access: Anyone.",
-    "BƯỚC 4: Mở link /exec trên trình duyệt, nếu thấy JSON như {rows:[]} là đúng.",
+    "BƯỚC 4: Mở link /exec trên trình duyệt; nếu thấy JSON có rows là kết nối đúng.",
     "BƯỚC 5: Link đang dùng hiện tại: " + currentUrl,
-    "BƯỚC 6: Nếu cần đổi link ngay trên game, bấm nút 'Cấu hình link Apps Script'."
+    "BƯỚC 6: Để mọi máy tự kết nối, dán link /exec vào defaultWebAppUrl trong LEADERBOARD_CONFIG rồi đưa file lên GitHub."
   ].join("\n\n");
   alert(guide);
 }
