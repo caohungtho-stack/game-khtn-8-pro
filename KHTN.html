@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sảnh Game Khoa Học Tự Nhiên Pro - Trường THCS Tân Hóa" />
+  <title>GAME KHOA HỌC TỰ NHIÊN PRO</title>
+  <style>
+    :root {
+      --bg-1: #07152f;
+      --bg-2: #102b58;
+      --panel: rgba(10, 29, 61, 0.82);
+      --panel-2: rgba(255,255,255,0.08);
+      --line: rgba(255,255,255,0.15);
+      --text: #f5fbff;
+      --muted: #bad0e9;
+      --cyan: #3ce4ff;
+      --blue: #5b8cff;
+      --gold: #ffd166;
+      --green: #62e6a7;
+      --violet: #b994ff;
+      --shadow: 0 22px 60px rgba(0,0,0,0.32);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(60,228,255,0.16), transparent 28%),
+        radial-gradient(circle at 90% 18%, rgba(185,148,255,0.15), transparent 25%),
+        linear-gradient(145deg, var(--bg-1), var(--bg-2));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .25;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, #000, transparent 80%);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .atom-mark {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: linear-gradient(145deg, rgba(60,228,255,.25), rgba(91,140,255,.3));
+      border: 1px solid rgba(255,255,255,.2);
+      box-shadow: inset 0 0 20px rgba(60,228,255,.14);
+      font-size: 26px;
+    }
+
+    .school-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.07);
+      color: var(--muted);
+      font-size: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: clamp(26px, 5vw, 58px);
+      background:
+        linear-gradient(120deg, rgba(7,21,47,.92), rgba(18,55,105,.8)),
+        radial-gradient(circle at 80% 20%, rgba(60,228,255,.24), transparent 30%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "⚛";
+      position: absolute;
+      right: clamp(-20px, 2vw, 24px);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: clamp(170px, 26vw, 320px);
+      line-height: 1;
+      color: rgba(255,255,255,.05);
+      filter: drop-shadow(0 0 30px rgba(60,228,255,.2));
+      user-select: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(60,228,255,.32);
+      background: rgba(60,228,255,.10);
+      color: #d9fbff;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: .98;
+      letter-spacing: -.035em;
+      max-width: 900px;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 700px;
+      color: var(--muted);
+      font-size: clamp(16px, 2vw, 19px);
+      line-height: 1.7;
+    }
+
+    .teacher-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .info-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--line);
+      color: #eaf6ff;
+      backdrop-filter: blur(8px);
+      font-size: 14px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 34px 2px 16px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 34px);
+      letter-spacing: -.02em;
+    }
+
+    .section-head p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .status {
+      white-space: nowrap;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(98,230,167,.28);
+      background: rgba(98,230,167,.10);
+      color: #caffdf;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .rooms {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .room {
+      --accent: var(--cyan);
+      position: relative;
+      overflow: hidden;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(150deg, rgba(255,255,255,.10), rgba(255,255,255,.045));
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+      isolation: isolate;
+    }
+
+    .room::before {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      right: -70px;
+      bottom: -75px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 20%, transparent);
+      filter: blur(2px);
+      z-index: -1;
+    }
+
+    .room:hover {
+      transform: translateY(-6px);
+      border-color: color-mix(in srgb, var(--accent) 65%, white 10%);
+      box-shadow: 0 24px 48px rgba(0,0,0,.26), 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
+    .room-6 { --accent: var(--cyan); }
+    .room-7 { --accent: var(--green); }
+    .room-8 { --accent: var(--gold); }
+    .room-9 { --accent: var(--violet); }
+
+    .room-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .room-icon {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+      font-size: 30px;
+    }
+
+    .room-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .room h3 {
+      margin: 8px 0 7px;
+      font-size: 28px;
+      letter-spacing: -.02em;
+    }
+
+    .room p {
+      margin: 0;
+      max-width: 520px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .room-number {
+      font-size: 72px;
+      line-height: .8;
+      font-weight: 900;
+      color: rgba(255,255,255,.07);
+      letter-spacing: -.08em;
+    }
+
+    .enter-btn {
+      width: 100%;
+      margin-top: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 13px 18px;
+      border: 1px solid color-mix(in srgb, var(--accent) 58%, transparent);
+      border-radius: 15px;
+      background: color-mix(in srgb, var(--accent) 16%, rgba(255,255,255,.02));
+      color: var(--text);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 850;
+      letter-spacing: .025em;
+      transition: background .2s ease, transform .2s ease, color .2s ease;
+    }
+
+    .enter-btn:hover {
+      background: var(--accent);
+      color: #07152f;
+      transform: translateY(-1px);
+    }
+
+    .enter-btn:focus-visible {
+      outline: 3px solid rgba(255,255,255,.85);
+      outline-offset: 3px;
+    }
+
+    .notice {
+      margin-top: 22px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .notice strong { color: var(--text); }
+    .notice-icon { font-size: 24px; line-height: 1; }
+
+    footer {
+      margin-top: 24px;
+      padding: 22px 4px 4px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 18px, 1180px); padding-top: 12px; }
+      .topbar { align-items: flex-start; }
+      .school-chip { display: none; }
+      .hero { border-radius: 22px; padding: 26px 20px; }
+      .hero::after { right: -65px; opacity: .7; }
+      .rooms { grid-template-columns: 1fr; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .room { min-height: 235px; padding: 21px; }
+      footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; }
+    }
+
+
+    /* Khóa phòng và cửa sổ nhập mã */
+    button.enter-btn {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .access-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(2, 10, 25, .76);
+      backdrop-filter: blur(8px);
+    }
+
+    .access-modal[hidden] { display: none; }
+
+    .access-dialog {
+      width: min(100%, 480px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px;
+      background: linear-gradient(145deg, rgba(7,21,47,.98), rgba(16,43,88,.98));
+      box-shadow: 0 28px 80px rgba(0,0,0,.5);
+    }
+
+    .access-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .access-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .access-title-wrap .room-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      font-size: 25px;
+    }
+
+    .access-head h2 {
+      margin: 0 0 4px;
+      font-size: 23px;
+    }
+
+    .access-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .close-modal {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .access-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #eaf6ff;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .access-input {
+      width: 100%;
+      min-height: 52px;
+      padding: 13px 15px;
+      border: 1px solid rgba(60,228,255,.36);
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font: inherit;
+      font-size: 17px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    .access-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(60,228,255,.13);
+    }
+
+    .verify-btn,
+    .open-game-btn {
+      width: 100%;
+      min-height: 52px;
+      margin-top: 13px;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #06152e;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .verify-btn:disabled {
+      opacity: .62;
+      cursor: wait;
+    }
+
+    .open-game-btn {
+      display: none;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .access-result {
+      min-height: 22px;
+      margin-top: 13px;
+      padding: 12px 14px;
+      border-radius: 13px;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .access-result.success {
+      border: 1px solid rgba(98,230,167,.38);
+      background: rgba(98,230,167,.10);
+      color: #d8ffe9;
+    }
+
+    .access-result.error {
+      border: 1px solid rgba(255,107,107,.38);
+      background: rgba(255,107,107,.10);
+      color: #ffe1e1;
+    }
+
+    .access-help {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+
+    .access-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .forget-code-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .game-view {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      background: #06152e;
+    }
+
+    .game-view[hidden] { display: none; }
+
+    .game-toolbar {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, #07152f, #102b58);
+      color: var(--text);
+    }
+
+    .game-back-btn {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 13px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .game-title {
+      min-width: 0;
+      text-align: right;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .game-frame {
+      width: 100%;
+      flex: 1 1 auto;
+      border: 0;
+      background: #fff;
+    }
+
+
+    /* Trạng thái phòng đã kích hoạt */
+    .enter-btn.is-unlocked {
+      border-color: rgba(98,230,167,.58);
+      background: linear-gradient(135deg, rgba(98,230,167,.28), rgba(60,228,255,.22));
+      color: #effff7;
+    }
+
+    .enter-btn.is-unlocked:hover {
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      color: #06152e;
+    }
+
+    .enter-btn.is-checking {
+      opacity: .72;
+      cursor: wait;
+      pointer-events: none;
+    }
+
+    .system-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 1600;
+      width: min(92vw, 560px);
+      transform: translateX(-50%);
+      padding: 14px 17px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 15px;
+      background: rgba(7,21,47,.96);
+      color: var(--text);
+      box-shadow: 0 18px 50px rgba(0,0,0,.4);
+      text-align: center;
+      font-weight: 750;
+    }
+
+    .system-toast.error {
+      border-color: rgba(255,107,107,.48);
+      background: rgba(72,18,31,.97);
+      color: #ffe6e6;
+    }
+
+    .system-toast.success {
+      border-color: rgba(98,230,167,.48);
+      background: rgba(10,67,54,.97);
+      color: #e4fff2;
+    }
+
+    .system-toast[hidden] { display: none; }
+
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <div class="brand-mini">
+        <div class="atom-mark" aria-hidden="true">⚛</div>
+        <span>KHTN PRO</span>
+      </div>
+      <div class="school-chip">Trường THCS Tân Hóa</div>
+    </div>
+
+    <section class="hero" aria-labelledby="main-title">
+      <div class="hero-content">
+        <div class="eyebrow">✦ Học viện khoa học số</div>
+        <h1 id="main-title">GAME KHOA HỌC TỰ NHIÊN PRO</h1>
+        <p>Chọn đúng khối lớp để bước vào phòng học tương tác, khám phá kiến thức và chinh phục các thử thách Khoa học Tự nhiên.</p>
+
+        <div class="teacher-row">
+          <div class="info-pill">👨‍🏫 <strong>Thầy Cao Hùng Thọ</strong></div>
+          <div class="info-pill">🏫 Trường THCS Tân Hóa</div>
+          <div class="info-pill">☎ 0888 777 395</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-head">
+      <div>
+        <h2>Chọn Phòng Game</h2>
+        <p>Mỗi cánh cửa dẫn đến một không gian học tập riêng dành cho từng khối lớp.</p>
+      </div>
+      <div class="status">● 4 phòng đang hoạt động</div>
+    </div>
+
+    <section class="rooms" aria-label="Danh sách phòng game">
+      <article class="room room-6">
+        <div>
+          <div class="room-top">
+            <div class="room-icon" aria-hidden="true">🔬</div>
+            <div class="room-number" aria-hidden="true">6</div>
+          </div>
+          <div class="room-label">Phòng số 01</div>
+          <h3>KHTN Lớp 6</h3>
+          <p>Khởi động hành trình khám phá vật chất, sự sống, năng lượng và thế giới tự nhiên.</p>
+        </div>
+        <button type="button" class="enter-btn access-btn" data-room="6" data-icon="🔬" data-url="KHTN6.html" aria-label="Nhập mã để mở game KHTN lớp 6">🔒 Nhập Mã Để Vào Game Lớp 6 <span aria-hidden="true">→</span></button>
+      </article>
+
+      <article class="room room-7">
+        <div>
+          <div class="room-top">
+            <div class="room-icon" aria-hidden="true">🧬</div>
+            <div class="room-number" aria-hidden="true">7</div>
+          </div>
+          <div class="room-label">Phòng số 02</div>
+          <h3>KHTN Lớp 7</h3>
+          <p>Khám phá nguyên tử, ánh sáng, âm thanh, trao đổi chất và thế giới sinh vật.</p>
+        </div>
+        <button type="button" class="enter-btn access-btn" data-room="7" data-icon="🧬" data-url="KHTN7.html" aria-label="Nhập mã để mở game KHTN lớp 7">🔒 Nhập Mã Để Vào Game Lớp 7 <span aria-hidden="true">→</span></button>
+      </article>
+
+      <article class="room room-8">
+        <div>
+          <div class="room-top">
+            <div class="room-icon" aria-hidden="true">🧪</div>
+            <div class="room-number" aria-hidden="true">8</div>
+          </div>
+          <div class="room-label">Phòng số 03</div>
+          <h3>KHTN Lớp 8</h3>
+          <p>Vượt qua các nhiệm vụ về phản ứng hóa học, lực, áp suất và cơ thể người.</p>
+        </div>
+        <button type="button" class="enter-btn access-btn" data-room="8" data-icon="🧪" data-url="KHTN8.html" aria-label="Nhập mã để mở game KHTN lớp 8">🔒 Nhập Mã Để Vào Game Lớp 8 <span aria-hidden="true">→</span></button>
+      </article>
+
+      <article class="room room-9">
+        <div>
+          <div class="room-top">
+            <div class="room-icon" aria-hidden="true">🚀</div>
+            <div class="room-number" aria-hidden="true">9</div>
+          </div>
+          <div class="room-label">Phòng số 04</div>
+          <h3>KHTN Lớp 9</h3>
+          <p>Chinh phục điện học, hóa học, di truyền và kiến thức Khoa học Tự nhiên cuối cấp.</p>
+        </div>
+        <button type="button" class="enter-btn access-btn" data-room="9" data-icon="🚀" data-url="KHTN9.html" aria-label="Nhập mã để mở game KHTN lớp 9">🔒 Nhập Mã Để Vào Game Lớp 9 <span aria-hidden="true">→</span></button>
+      </article>
+    </section>
+
+    <aside class="notice">
+      <div class="notice-icon" aria-hidden="true">💡</div>
+      <div><strong>Hướng dẫn:</strong> Mỗi phòng chỉ cần kích hoạt một lần trên thiết bị. Khi mã còn hiệu lực, nút phòng sẽ chuyển thành “Vào Game” và không yêu cầu nhập lại.</div>
+    </aside>
+
+
+
+    <div id="accessModal" class="access-modal" hidden role="dialog" aria-modal="true" aria-labelledby="accessTitle">
+      <div class="access-dialog">
+        <div class="access-head">
+          <div class="access-title-wrap">
+            <div id="modalRoomIcon" class="room-icon" aria-hidden="true">🔬</div>
+            <div>
+              <h2 id="accessTitle">Mở Phòng KHTN 6</h2>
+              <p>Mã được kiểm tra từ hệ thống Google Sheets.</p>
+            </div>
+          </div>
+          <button id="closeModal" class="close-modal" type="button" aria-label="Đóng cửa sổ">×</button>
+        </div>
+
+        <label class="access-label" for="accessCode">Mã truy cập</label>
+        <input id="accessCode" class="access-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ví dụ: KHTN-M1-AB12CD34" />
+        <button id="verifyCode" class="verify-btn" type="button">🔐 Kiểm Tra Mã</button>
+        <div id="accessResult" class="access-result" aria-live="polite">Vui lòng nhập mã do thầy Cao Hùng Thọ cung cấp.</div>
+        <button id="openGame" class="open-game-btn" type="button">🎮 Bắt Đầu Vào Game</button>
+        <div class="access-actions">
+          <button id="forgetCode" class="forget-code-btn" type="button">Quên mã đã lưu trên thiết bị này</button>
+        </div>
+        <p class="access-help">Mã hợp lệ sẽ được ghi nhớ trên thiết bị này và tự kiểm tra lại khi mở phòng. Khi có lỗi, liên hệ 0888 777 395.</p>
+      </div>
+    </div>
+
+    <section id="gameView" class="game-view" hidden aria-label="Phòng game đang mở">
+      <div class="game-toolbar">
+        <button id="closeGame" class="game-back-btn" type="button">← Trở Về Sảnh</button>
+        <div id="gameTitle" class="game-title">KHTN PRO</div>
+      </div>
+      <iframe id="gameFrame" class="game-frame" title="Game Khoa Học Tự Nhiên" allow="fullscreen"></iframe>
+    </section>
+
+    <div id="systemToast" class="system-toast" hidden role="status" aria-live="polite"></div>
+
+    <footer>
+      <span>© 2026 GAME KHOA HỌC TỰ NHIÊN PRO</span>
+      <span>Phụ trách: Thầy Cao Hùng Thọ · 0888 777 395</span>
+    </footer>
+  </main>
+
+
+  <script>
+    const KHTN_API_URL = "https://script.google.com/macros/s/AKfycbwx6JtdQS7vby9YsSOdPQ5kRlB9j579FJYIbXLOxwb1HV7SOfGYsaBR27-IQoTOB3HGGA/exec";
+    const ROOM_ACCESS_STORAGE_KEY = 'khtn_pro_room_access_v3';
+    const LEGACY_CODE_KEY = 'khtn_pro_remembered_code_v1';
+    const EXPIRY_MESSAGE = 'Mã kích hoạt đã hết thời gian hiệu lực.';
+
+    const accessModal = document.getElementById('accessModal');
+    const accessCode = document.getElementById('accessCode');
+    const accessResult = document.getElementById('accessResult');
+    const verifyCodeButton = document.getElementById('verifyCode');
+    const openGameButton = document.getElementById('openGame');
+    const forgetCodeButton = document.getElementById('forgetCode');
+    const accessTitle = document.getElementById('accessTitle');
+    const modalRoomIcon = document.getElementById('modalRoomIcon');
+    const gameView = document.getElementById('gameView');
+    const gameFrame = document.getElementById('gameFrame');
+    const gameTitle = document.getElementById('gameTitle');
+    const closeGameButton = document.getElementById('closeGame');
+    const systemToast = document.getElementById('systemToast');
+    const roomButtons = Array.from(document.querySelectorAll('.access-btn'));
+
+    let selectedRoom = '';
+    let selectedGameUrl = '';
+    let verificationInProgress = false;
+    let currentGameRoom = '';
+    let toastTimer = null;
+
+    function getDeviceId() {
+      const key = 'khtn_pro_device_id';
+      let value = localStorage.getItem(key);
+      if (!value) {
+        const randomPart = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        value = `KHTN-${randomPart}`;
+        localStorage.setItem(key, value);
+      }
+      return value;
+    }
+
+    function readRoomAccessStore() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(ROOM_ACCESS_STORAGE_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function writeRoomAccessStore(store) {
+      localStorage.setItem(ROOM_ACCESS_STORAGE_KEY, JSON.stringify(store));
+    }
+
+    function getRoomAccess(room) {
+      return readRoomAccessStore()[String(room)] || null;
+    }
+
+    function saveRoomAccess(room, code, response) {
+      const store = readRoomAccessStore();
+      const expiresAt = response && response.expiresAt ? String(response.expiresAt) : '';
+      store[String(room)] = {
+        code: String(code || '').trim().toUpperCase(),
+        expiresAt,
+        expiresAtMs: parseExpiryToMs(expiresAt),
+        package: response && response.package ? String(response.package) : '',
+        verifiedAt: Date.now()
+      };
+      writeRoomAccessStore(store);
+      localStorage.removeItem(LEGACY_CODE_KEY);
+      return store[String(room)];
+    }
+
+    function removeRoomAccess(room) {
+      const store = readRoomAccessStore();
+      delete store[String(room)];
+      writeRoomAccessStore(store);
+    }
+
+    function getLegacyCode() {
+      return (localStorage.getItem(LEGACY_CODE_KEY) || '').trim().toUpperCase();
+    }
+
+    function parseExpiryToMs(value) {
+      if (!value) return 0;
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+      const text = String(value).trim();
+      const vietnamFormat = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+      if (vietnamFormat) {
+        const [, day, month, year, hour = '23', minute = '59'] = vietnamFormat;
+        return Date.parse(
+          `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute}:59+07:00`
+        );
+      }
+
+      const parsed = Date.parse(text);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    function isLocallyExpired(access) {
+      if (!access) return true;
+      const expiry = Number(access.expiresAtMs) || parseExpiryToMs(access.expiresAt);
+      return Boolean(expiry && Date.now() >= expiry);
+    }
+
+    function getRoomButton(room) {
+      return roomButtons.find(button => button.dataset.room === String(room));
+    }
+
+    function setRoomLocked(room) {
+      const button = getRoomButton(room);
+      if (!button) return;
+      button.classList.remove('is-unlocked', 'is-checking');
+      button.dataset.unlocked = 'false';
+      button.innerHTML = `🔒 Nhập Mã Để Vào Game Lớp ${room} <span aria-hidden="true">→</span>`;
+      button.setAttribute('aria-label', `Nhập mã để mở game KHTN lớp ${room}`);
+      button.title = '';
+    }
+
+    function setRoomChecking(room) {
+      const button = getRoomButton(room);
+      if (!button) return;
+      button.classList.add('is-checking');
+      button.innerHTML = `⏳ Đang Kiểm Tra Phòng Lớp ${room}...`;
+    }
+
+    function setRoomUnlocked(room, access) {
+      const button = getRoomButton(room);
+      if (!button) return;
+      button.classList.remove('is-checking');
+      button.classList.add('is-unlocked');
+      button.dataset.unlocked = 'true';
+      button.innerHTML = `🎮 Vào Game Lớp ${room} <span aria-hidden="true">→</span>`;
+      button.setAttribute('aria-label', `Vào thẳng game KHTN lớp ${room}`);
+      button.title = access && access.expiresAt
+        ? `Mã còn hiệu lực đến ${access.expiresAt}`
+        : 'Mã đang còn hiệu lực';
+    }
+
+    function showToast(message, type = '') {
+      clearTimeout(toastTimer);
+      systemToast.className = `system-toast${type ? ` ${type}` : ''}`;
+      systemToast.textContent = message;
+      systemToast.hidden = false;
+      toastTimer = setTimeout(() => {
+        systemToast.hidden = true;
+      }, 6500);
+    }
+
+    function isExpiryMessage(message) {
+      return /hết hạn|hết thời gian|hết hiệu lực/i.test(String(message || ''));
+    }
+
+    function isNetworkMessage(message) {
+      return /không kết nối|phản hồi quá chậm|network|failed to fetch/i.test(String(message || ''));
+    }
+
+    function isApiConfigured() {
+      return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/i.test(KHTN_API_URL);
+    }
+
+    function setResult(message, type = '') {
+      accessResult.className = `access-result${type ? ` ${type}` : ''}`;
+      accessResult.innerHTML = message;
+    }
+
+    function launchGame(room, url) {
+      currentGameRoom = String(room);
+      gameTitle.textContent = `GAME KHTN LỚP ${room}`;
+      gameFrame.src = url;
+      gameView.hidden = false;
+      accessModal.hidden = true;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeGame() {
+      gameView.hidden = true;
+      gameFrame.src = 'about:blank';
+      currentGameRoom = '';
+      document.body.style.overflow = '';
+    }
+
+    function configureSelectedRoom(button) {
+      selectedRoom = button.dataset.room;
+      selectedGameUrl = button.dataset.url;
+      accessTitle.textContent = `Mở Phòng KHTN ${selectedRoom}`;
+      modalRoomIcon.textContent = button.dataset.icon || '🔐';
+    }
+
+    function openAccessModal(button, message = '', type = '') {
+      configureSelectedRoom(button);
+      openGameButton.style.display = 'none';
+      accessCode.value = getRoomAccess(selectedRoom)?.code || getLegacyCode() || '';
+      setResult(message || 'Vui lòng nhập mã do thầy Cao Hùng Thọ cung cấp.', type);
+      accessModal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => accessCode.focus(), 50);
+    }
+
+    function closeAccessModal() {
+      if (verificationInProgress) return;
+      accessModal.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    function jsonpRequest(params) {
+      return new Promise((resolve, reject) => {
+        const callbackName = `khtnCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const timeoutId = setTimeout(() => {
+          cleanup();
+          reject(new Error('Hệ thống phản hồi quá chậm. Vui lòng thử lại.'));
+        }, 15000);
+
+        function cleanup() {
+          clearTimeout(timeoutId);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+        }
+
+        window[callbackName] = data => {
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('Không kết nối được hệ thống Google Sheets.'));
+        };
+
+        const query = new URLSearchParams({
+          ...params,
+          callback: callbackName,
+          _: Date.now().toString()
+        });
+        script.src = `${KHTN_API_URL}?${query.toString()}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    async function requestCodeVerification(room, code) {
+      return jsonpRequest({
+        action: 'verify',
+        code: String(code || '').trim().toUpperCase(),
+        room: String(room),
+        device: getDeviceId()
+      });
+    }
+
+    function expireRoom(room, notify = true) {
+      removeRoomAccess(room);
+      setRoomLocked(room);
+
+      const button = getRoomButton(room);
+      if (currentGameRoom === String(room) && !gameView.hidden) {
+        closeGame();
+        if (button) openAccessModal(button, `❌ ${EXPIRY_MESSAGE}`, 'error');
+        return;
+      }
+
+      if (notify) showToast(EXPIRY_MESSAGE, 'error');
+    }
+
+    async function validateStoredRoom(button, options = {}) {
+      const { openOnSuccess = false, showErrorModal = true } = options;
+      const room = button.dataset.room;
+      const access = getRoomAccess(room);
+
+      if (!access || !access.code) {
+        setRoomLocked(room);
+        if (showErrorModal) openAccessModal(button);
+        return false;
+      }
+
+      if (isLocallyExpired(access)) {
+        expireRoom(room, true);
+        if (showErrorModal) openAccessModal(button, `❌ ${EXPIRY_MESSAGE}`, 'error');
+        return false;
+      }
+
+      setRoomChecking(room);
+
+      try {
+        const response = await requestCodeVerification(room, access.code);
+        if (!response || !response.success) {
+          const message = response && response.message ? response.message : 'Mã không hợp lệ.';
+          if (isExpiryMessage(message)) {
+            expireRoom(room, true);
+            if (showErrorModal) openAccessModal(button, `❌ ${EXPIRY_MESSAGE}`, 'error');
+          } else {
+            removeRoomAccess(room);
+            setRoomLocked(room);
+            if (showErrorModal) openAccessModal(button, `❌ ${message}`, 'error');
+          }
+          return false;
+        }
+
+        const updatedAccess = saveRoomAccess(room, access.code, response);
+        setRoomUnlocked(room, updatedAccess);
+        if (openOnSuccess) launchGame(room, button.dataset.url);
+        return true;
+      } catch (error) {
+        const message = error && error.message ? error.message : 'Không thể kiểm tra mã.';
+        if (isNetworkMessage(message)) {
+          setRoomUnlocked(room, access);
+          if (showErrorModal) showToast(message, 'error');
+        } else {
+          setRoomLocked(room);
+          if (showErrorModal) openAccessModal(button, `❌ ${message}`, 'error');
+        }
+        return false;
+      }
+    }
+
+    async function verifyAccessCode() {
+      if (verificationInProgress) return;
+
+      const code = accessCode.value.trim().toUpperCase();
+      if (!isApiConfigured()) {
+        setResult('⚠️ File sảnh chưa được gắn URL Web App của Google Apps Script.', 'error');
+        return;
+      }
+      if (!code) {
+        setResult('Vui lòng nhập mã truy cập.', 'error');
+        accessCode.focus();
+        return;
+      }
+
+      verificationInProgress = true;
+      verifyCodeButton.disabled = true;
+      verifyCodeButton.textContent = '⏳ Đang kích hoạt...';
+      setResult('Đang kiểm tra mã và thời hạn trên Google Sheets...');
+
+      try {
+        const response = await requestCodeVerification(selectedRoom, code);
+        if (!response || !response.success) {
+          const message = response && response.message ? response.message : 'Mã không hợp lệ.';
+          if (isExpiryMessage(message)) {
+            removeRoomAccess(selectedRoom);
+            setRoomLocked(selectedRoom);
+            throw new Error(EXPIRY_MESSAGE);
+          }
+          throw new Error(message);
+        }
+
+        const access = saveRoomAccess(selectedRoom, code, response);
+        setRoomUnlocked(selectedRoom, access);
+
+        const expiryText = response.expiresAt
+          ? `<br>Hết hạn: <strong>${response.expiresAt}</strong>`
+          : '';
+        setResult(`✅ <strong>Kích hoạt thành công</strong>${expiryText}<br>Đang mở game...`, 'success');
+
+        const room = selectedRoom;
+        const url = selectedGameUrl;
+        setTimeout(() => launchGame(room, url), 350);
+      } catch (error) {
+        const message = error && error.message ? error.message : 'Không thể kiểm tra mã.';
+        setResult(`❌ ${message}`, 'error');
+      } finally {
+        verificationInProgress = false;
+        verifyCodeButton.disabled = false;
+        verifyCodeButton.textContent = '🔐 Kích Hoạt Và Vào Game';
+      }
+    }
+
+    function forgetSelectedRoomCode() {
+      if (!selectedRoom) return;
+      removeRoomAccess(selectedRoom);
+      setRoomLocked(selectedRoom);
+      accessCode.value = '';
+      setResult(`Đã xóa mã đã lưu của phòng KHTN ${selectedRoom}.`);
+      accessCode.focus();
+    }
+
+    async function handleRoomClick(button) {
+      configureSelectedRoom(button);
+      const access = getRoomAccess(selectedRoom);
+
+      if (!access || !access.code) {
+        openAccessModal(button);
+        return;
+      }
+
+      await validateStoredRoom(button, {
+        openOnSuccess: true,
+        showErrorModal: true
+      });
+    }
+
+    async function initializeRoomStates() {
+      roomButtons.forEach(button => setRoomLocked(button.dataset.room));
+
+      await Promise.all(roomButtons.map(async button => {
+        const room = button.dataset.room;
+        const access = getRoomAccess(room);
+        if (!access || !access.code) return;
+
+        if (isLocallyExpired(access)) {
+          expireRoom(room, false);
+          return;
+        }
+
+        await validateStoredRoom(button, {
+          openOnSuccess: false,
+          showErrorModal: false
+        });
+      }));
+    }
+
+    function checkLocalExpirations() {
+      roomButtons.forEach(button => {
+        const room = button.dataset.room;
+        const access = getRoomAccess(room);
+        if (access && isLocallyExpired(access)) {
+          expireRoom(room, true);
+        }
+      });
+    }
+
+    async function refreshStoredRoomsFromServer() {
+      if (document.hidden || verificationInProgress) return;
+      for (const button of roomButtons) {
+        const access = getRoomAccess(button.dataset.room);
+        if (!access || !access.code) continue;
+        await validateStoredRoom(button, {
+          openOnSuccess: false,
+          showErrorModal: false
+        });
+      }
+    }
+
+    roomButtons.forEach(button => {
+      button.addEventListener('click', () => handleRoomClick(button));
+    });
+
+    document.getElementById('closeModal').addEventListener('click', closeAccessModal);
+    accessModal.addEventListener('click', event => {
+      if (event.target === accessModal) closeAccessModal();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      if (!gameView.hidden) {
+        closeGame();
+      } else if (!accessModal.hidden) {
+        closeAccessModal();
+      }
+    });
+
+    accessCode.addEventListener('keydown', event => {
+      if (event.key === 'Enter') verifyAccessCode();
+    });
+
+    verifyCodeButton.textContent = '🔐 Kích Hoạt Và Vào Game';
+    verifyCodeButton.addEventListener('click', verifyAccessCode);
+    forgetCodeButton.addEventListener('click', forgetSelectedRoomCode);
+    openGameButton.style.display = 'none';
+    closeGameButton.addEventListener('click', closeGame);
+
+    window.addEventListener('pagehide', () => {
+      if (!gameView.hidden) gameFrame.src = 'about:blank';
+    });
+
+    initializeRoomStates();
+    setInterval(checkLocalExpirations, 30000);
+    setInterval(refreshStoredRoomsFromServer, 5 * 60 * 1000);
+  </script>
+
+</body>
+</html>
