@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Game Cân Bằng Hóa Học - Level & Cấp Bậc</title>
+<style>
+:root{--primary:#1a5f7a;--secondary:#159895;--accent:#e67e22;--success:#27ae60;--danger:#e74c3c;--light:#f4f7f6;--dark:#2c3e50;--gold:#f4b942}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:#cbd5e0;margin:0;display:flex;justify-content:center;min-height:100vh;padding:10px}
+.game-container{background:#fff;width:100%;max-width:880px;border-radius:20px;box-shadow:0 10px 25px rgba(0,0,0,.2);padding:20px;display:flex;flex-direction:column;position:relative}
+header{text-align:center;border-bottom:2px solid var(--light);padding-bottom:15px;margin-bottom:20px}h1{color:var(--primary);font-size:1.4rem;margin:0;line-height:1.4}.slogan{color:var(--accent);font-weight:800;font-style:italic;margin:5px 0}.intro-text{font-size:.9rem;color:#555;margin-bottom:10px}.teacher-info{font-weight:700;color:var(--primary);font-size:.95rem}.teacher-info a{color:var(--primary);text-decoration:none;border-bottom:1px solid var(--primary)}
+.screen{display:none;animation:fadeIn .35s ease}.screen.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.auth-box{max-width:650px;margin:20px auto}.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.input-group{margin-bottom:16px;text-align:left}.input-group label{display:block;margin-bottom:7px;font-weight:800;color:var(--dark)}.input-group input,.input-group select{width:100%;padding:12px;border:2px solid #d9e0e6;border-radius:10px;font-size:1rem;outline:none;background:#fff}.input-group input:focus,.input-group select:focus{border-color:var(--secondary);box-shadow:0 0 0 3px rgba(21,152,149,.12)}
+.profile-card{border:2px solid #dbe7ec;border-radius:17px;padding:15px;margin:4px 0 16px;background:linear-gradient(135deg,#f5fbfc,#fff8ec)}.level-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px}.level-number{font-size:1.9rem;font-weight:900;line-height:1}.level-caption{font-size:.75rem;opacity:.9;text-transform:uppercase;font-weight:700}.profile-name{font-weight:800;text-align:right;max-width:60%}.rank-line{display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:800;color:var(--accent);margin-bottom:8px}.stars{letter-spacing:2px;font-size:1.05rem}.xp-row{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;color:#52606d;margin-bottom:5px}.xp-bar{height:13px;border-radius:999px;background:#dce6eb;overflow:hidden;border:1px solid rgba(26,95,122,.12)}.xp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--secondary),var(--accent));border-radius:inherit;transition:width .6s ease}.profile-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.profile-mini{text-align:center;background:rgba(255,255,255,.85);border-radius:10px;padding:8px 4px}.profile-mini strong{display:block;color:var(--primary);font-size:1rem}.profile-mini span{color:#667085;font-size:.7rem}.section-title{font-weight:900;color:var(--dark);margin:13px 0 7px}.badge-list{display:flex;flex-wrap:wrap;gap:6px}.achievement{border:1px solid #d9e0e6;background:#f3f5f7;color:#8995a1;border-radius:999px;padding:5px 8px;font-size:.72rem;font-weight:750}.achievement.earned{background:#fff1d7;border-color:#f1b458;color:#914a00}
+.challenge-card{border:2px solid #e6edf1;border-radius:15px;padding:14px;margin-bottom:16px;background:#fbfdfe}.challenge-main{display:grid;grid-template-columns:1.4fr repeat(2,1fr);gap:8px;margin-bottom:11px}.challenge-box{text-align:center;border-radius:11px;background:#eef6f7;padding:10px 6px}.challenge-box strong{display:block;color:var(--primary);font-size:1.08rem}.challenge-box span{font-size:.72rem;color:#64748b}.mode-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mode-option{position:relative;cursor:pointer}.mode-option input{position:absolute;opacity:0}.mode-card{display:block;border:2px solid #d9e0e6;border-radius:11px;padding:10px;text-align:center;font-weight:800;color:#536471;background:#fff}.mode-option input:checked+.mode-card{border-color:var(--secondary);color:var(--primary);background:#eaf8f6;box-shadow:0 0 0 3px rgba(21,152,149,.12)}.practice-row{display:none;margin-top:10px}.practice-row.show{display:block}.note{font-size:.78rem;color:#667085;line-height:1.45;margin:9px 0 0}.perfect-rule{background:#fff7e8;border-left:4px solid var(--accent);padding:9px 11px;border-radius:8px;font-size:.8rem;color:#6b4a18;margin-top:10px}
+.leaderboard{border:2px solid #e5ebef;border-radius:15px;padding:12px;margin:16px 0}.leaderboard-note{font-size:.74rem;color:#708090;margin-bottom:8px}.leaderboard-table{width:100%;border-collapse:collapse;font-size:.8rem}.leaderboard-table th,.leaderboard-table td{padding:8px 5px;border-bottom:1px solid #edf0f2;text-align:left}.leaderboard-table th{color:#607080;font-size:.7rem;text-transform:uppercase}.leaderboard-table tr.me{background:#eaf8f6}.empty{text-align:center;color:#8995a1;padding:12px}
+.btn{padding:12px 22px;border:none;border-radius:10px;font-weight:850;cursor:pointer;transition:.2s;font-size:1rem;min-width:135px}.btn-start{background:var(--primary);color:#fff;width:100%}.btn-check{background:var(--success);color:#fff}.btn-clear{background:#94a3b8;color:#fff}.btn-skip{background:var(--dark);color:#fff}.btn:hover{opacity:.92;transform:translateY(-1px)}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:9px;background:var(--light);padding:13px;border-radius:12px;margin-bottom:18px}.stat-card{text-align:center}.stat-label{font-size:.7rem;color:#666;display:block;text-transform:uppercase}.stat-value{font-size:1.04rem;font-weight:850;color:var(--primary)}#timer.warning{color:var(--danger);animation:pulse 1s infinite}@keyframes pulse{50%{transform:scale(1.06)}}
+.number-bank{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:22px;padding:10px;background:#e2e8f0;border-radius:10px}.num-tag{width:42px;height:42px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:grab;font-weight:850;font-size:1.2rem;user-select:none}.num-tag:active{transform:scale(.92)}.equation-area{font-size:1.4rem;line-height:2.5;text-align:center;margin:28px 0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:9px}.coeff-input-wrapper{width:50px;height:50px;border:2px dashed #94a3b8;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:#fff}.coeff-input-wrapper.active-drop{border-color:var(--accent);background:#fff7ed}.coeff-input-wrapper.selected{border-color:var(--secondary);box-shadow:0 0 0 3px rgba(21,152,149,.16)}.coeff-input-wrapper.error-location{border-color:var(--danger);background:#fff0ef;box-shadow:0 0 0 3px rgba(231,76,60,.14)}.chem-formula.error-location{color:var(--danger);font-weight:900;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}.coeff-input{width:100%;height:100%;border:none;text-align:center;font-size:1.4rem;font-weight:850;color:var(--accent);background:transparent;outline:none;-moz-appearance:textfield}.coeff-input::placeholder{color:#b7c0c8;opacity:1}.coeff-input::-webkit-inner-spin-button{-webkit-appearance:none}sub{font-size:.6em;vertical-align:sub}.input-note{text-align:center;color:#667085;font-size:.8rem;margin:-10px 0 12px}.feedback-detail{display:inline-block;text-align:left;margin:8px auto 2px;padding-left:22px;font-weight:700;color:#8f2f25}.feedback-detail li{margin:4px 0}.feedback-note{display:block;margin-top:7px;font-size:.86rem;color:#6b4a18}.controls{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:18px}#msg-feedback{text-align:center;min-height:42px;margin-top:13px;font-weight:800;font-size:1rem}.correct-pop{animation:correctPop .45s ease}@keyframes correctPop{0%{transform:scale(.92);opacity:0}65%{transform:scale(1.06);opacity:1}100%{transform:none}}
+.result-card{background:#fff;border:4px solid var(--primary);border-radius:20px;padding:22px;margin:10px 0}.result-level-hero{text-align:center;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:15px;padding:15px;margin-bottom:14px}.result-level-hero strong{display:block;font-size:1.7rem}.result-level-hero span{font-size:.85rem}.banner{display:none;text-align:center;border-radius:13px;padding:13px;margin-bottom:13px;background:linear-gradient(135deg,#fff0c9,#e9fbf3);border:2px solid #f2b84b;color:#7a4300}.banner.show{display:block;animation:correctPop .55s ease}.banner strong{display:block;font-size:1.15rem;color:var(--accent);margin-bottom:4px}.result-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed #e7eaed}.result-label{color:#555}.result-value{font-weight:800;color:var(--dark);text-align:right}.result-score{font-size:1.65rem;color:var(--success)}.rank-result{display:inline-block;padding:6px 10px;border-radius:999px;background:#fff3df;color:#a85300;font-weight:850}.rank-result.success{background:#e9f8ef;color:#177a40}.result-progress{margin:12px 0 4px;padding:11px;border-radius:12px;background:var(--light)}.security-box{font-size:.72rem;color:#7f8c8d;margin-top:17px;word-break:break-all;text-align:center}.xp-flash{animation:xpFlash .5s ease}@keyframes xpFlash{0%{transform:scale(.8);color:var(--accent)}65%{transform:scale(1.18)}100%{transform:none}}
+footer{margin-top:auto;text-align:center;padding-top:22px;font-size:.8rem;color:#666;border-top:1px solid #eee}.footer-phone{display:block;margin-top:5px;color:var(--primary);font-weight:800;text-decoration:none}#canvas-fireworks{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1000;display:none}
+@media(max-width:650px){.game-container{padding:13px}.input-grid{grid-template-columns:1fr}.profile-stats{grid-template-columns:repeat(2,1fr)}.challenge-main{grid-template-columns:1fr 1fr}.challenge-main .challenge-box:first-child{grid-column:1/-1}.leaderboard-table th:nth-child(5),.leaderboard-table td:nth-child(5){display:none}.equation-area{font-size:1.08rem;line-height:2.15}.coeff-input-wrapper{width:40px;height:40px}.btn{flex:1;min-width:110px;font-size:.9rem;padding:10px}.level-hero{align-items:flex-start}.profile-name{max-width:55%;font-size:.88rem}}
+@media(max-width:390px){.mode-options{grid-template-columns:1fr}.leaderboard-table th:nth-child(4),.leaderboard-table td:nth-child(4){display:none}}
+</style>
+</head>
+<body>
+<div class="game-container">
+<header>
+<h1>Game cân bằng phương trình của thầy Cao Hùng Thọ<br>Trường THCS Tân Hóa</h1>
+<p class="slogan">Học Hóa dễ dàng – Cân bằng thật nhanh!</p>
+<p class="intro-text">Luyện tập nhiều lần để tăng Level, chinh phục cấp bậc và sưu tập danh hiệu.</p>
+<div class="teacher-info">GV phụ trách: Thầy Cao Hùng Thọ - SĐT: <a href="tel:0888777395">0888777395</a></div>
+</header>
+<div id="screen-start" class="screen active">
+<div class="auth-box">
+<div class="input-grid">
+<div class="input-group"><label>Họ và tên học sinh:</label><input type="text" id="stu-name" placeholder="Ví dụ: Nguyễn Văn A"></div>
+<div class="input-group"><label>Lớp:</label><input type="text" id="stu-class" placeholder="Ví dụ: 8A1"></div>
+</div>
+<div class="profile-card">
+<div class="level-hero"><div><div class="level-caption">Tiêu chí xếp hạng chính</div><div class="level-number" id="profile-level">LEVEL 1</div></div><div class="profile-name" id="profile-name">Nhập họ tên và lớp để xem hồ sơ</div></div>
+<div class="rank-line"><span id="profile-rank">🌱 Tập sự</span><span class="stars" id="profile-stars">☆☆</span></div>
+<div class="xp-row"><span id="profile-xp-text">0 / 150 XP</span><span id="profile-xp-percent">0%</span></div><div class="xp-bar"><div class="xp-fill" id="profile-xp-fill"></div></div>
+<div class="profile-stats">
+<div class="profile-mini"><strong id="profile-total-correct">0</strong><span>Tổng câu đúng</span></div>
+<div class="profile-mini"><strong id="profile-first-rate">0%</strong><span>Đúng lần đầu</span></div>
+<div class="profile-mini"><strong id="profile-unique">0/100</strong><span>Đã chinh phục</span></div>
+<div class="profile-mini"><strong id="profile-games">0</strong><span>Lượt đã chơi</span></div>
+</div>
+<div class="section-title">Danh hiệu đã đạt: <span id="profile-achievement-count">0</span></div><div class="badge-list" id="profile-achievements"></div>
+</div>
+<div class="challenge-card">
+<div class="section-title" style="margin-top:0">Thử thách cấp bậc hiện tại</div>
+<div class="challenge-main">
+<div class="challenge-box"><strong id="challenge-rank">🌱 Tập sự ☆☆</strong><span>Cần 2 lượt hoàn hảo để thăng hạng</span></div>
+<div class="challenge-box"><strong id="challenge-count">10 câu</strong><span>Số câu mỗi lượt</span></div>
+<div class="challenge-box"><strong id="challenge-time">5 phút/câu</strong><span>Giới hạn thời gian</span></div>
+</div>
+<div class="mode-options">
+<label class="mode-option"><input type="radio" name="play-mode" value="ranked" checked><span class="mode-card">🏆 Xếp hạng<br><small>Được nhận sao thăng hạng</small></span></label>
+<label class="mode-option"><input type="radio" name="play-mode" value="practice"><span class="mode-card">📘 Luyện tập<br><small>Chọn cấp đã mở, chỉ nhận XP</small></span></label>
+</div>
+<div class="practice-row" id="practice-row"><div class="input-group" style="margin:10px 0 0"><label>Chọn cấp để luyện:</label><select id="practice-rank"></select></div></div>
+<div class="perfect-rule"><strong>Lượt hoàn hảo:</strong> đúng 100% và mọi câu đều đúng ngay lần kiểm tra đầu tiên; không bỏ câu, không hết giờ. Hai lượt hoàn hảo dùng hai bộ câu khác nhau.</div>
+<p class="note">Level tăng nhờ XP và là tiêu chí xếp hạng đầu tiên. Cấp cao có hệ số XP lớn hơn; câu đã từng chinh phục chỉ nhận 50% XP để hạn chế cày câu quen.</p>
+</div>
+<button class="btn btn-start" onclick="startGame()">BẮT ĐẦU LÀM BÀI</button>
+<div class="leaderboard">
+<div class="section-title" style="margin-top:0">🏅 Bảng xếp hạng trên thiết bị</div><div class="leaderboard-note">Sắp xếp: Level → cấp bậc → sao/vương miện → tỷ lệ đúng lần đầu → số câu đã chinh phục.</div>
+<div id="leaderboard-wrap"></div>
+</div>
+</div>
+</div>
+<div id="screen-game" class="screen">
+<div class="dashboard">
+<div class="stat-card"><span class="stat-label">Tiến trình</span><span class="stat-value" id="ui-progress">1/10</span></div>
+<div class="stat-card"><span class="stat-label">Điểm lần đầu</span><span class="stat-value" id="ui-score">0</span></div>
+<div class="stat-card"><span class="stat-label">Thời gian</span><span class="stat-value" id="timer">05:00</span></div>
+<div class="stat-card"><span class="stat-label">Level</span><span class="stat-value" id="ui-level">1</span></div>
+<div class="stat-card"><span class="stat-label">Cấp bậc</span><span class="stat-value" id="ui-rank">Tập sự</span></div>
+<div class="stat-card"><span class="stat-label">XP bài này</span><span class="stat-value" id="ui-xp">+0</span></div>
+<div class="stat-card"><span class="stat-label">Đúng lần đầu</span><span class="stat-value" id="ui-first">0</span></div>
+<div class="stat-card"><span class="stat-label">Chuỗi đúng</span><span class="stat-value" id="ui-streak">0</span></div>
+</div>
+<div class="number-bank" id="number-bank"></div><div class="input-note">Có thể để trống hệ số 1. Các hệ số khác chọn hoặc nhập từ 2 đến 22.</div><div class="equation-area" id="eq-area"></div><div id="msg-feedback"></div>
+<div class="controls"><button id="btn-check" class="btn btn-check" onclick="checkAnswer()">Kiểm tra đáp án</button><button id="btn-clear" class="btn btn-clear" onclick="clearCoeffs()">Xóa hệ số</button><button id="btn-skip" class="btn btn-skip" onclick="skipQuestion('skip')">Qua câu</button></div>
+</div>
+<div id="screen-result" class="screen">
+<div class="result-card">
+<div class="result-level-hero"><span>Tiêu chí xếp hạng chính</span><strong id="res-player-level">LEVEL 1</strong><span id="res-level-progress"></span></div>
+<div class="banner" id="res-level-up"><strong>🎉 LÊN LEVEL!</strong><span id="res-level-up-text"></span></div>
+<div class="banner" id="res-rank-up"><strong>🏆 THĂNG HẠNG!</strong><span id="res-rank-up-text"></span></div>
+<div class="result-item"><span class="result-label">Họ và tên:</span><span class="result-value" id="res-name"></span></div>
+<div class="result-item"><span class="result-label">Lớp:</span><span class="result-value" id="res-class"></span></div>
+<div class="result-item"><span class="result-label">Điểm đúng lần đầu:</span><span class="result-value result-score" id="res-score"></span></div>
+<div class="result-item"><span class="result-label">Đúng ngay lần đầu:</span><span class="result-value" id="res-first"></span></div>
+<div class="result-item"><span class="result-label">Chế độ:</span><span class="result-value" id="res-mode"></span></div>
+<div class="result-item"><span class="result-label">Cấp bậc:</span><span class="result-value" id="res-rank"></span></div>
+<div class="result-item"><span class="result-label">Đánh giá lượt chơi:</span><span class="result-value"><span class="rank-result" id="res-perfect"></span></span></div>
+<div class="result-item"><span class="result-label">XP nhận được:</span><span class="result-value" id="res-xp-earned"></span></div>
+<div class="result-item"><span class="result-label">Chuỗi đúng cao nhất:</span><span class="result-value" id="res-streak"></span></div>
+<div class="result-item"><span class="result-label">Tổng thời gian:</span><span class="result-value" id="res-total-time"></span></div>
+<div class="result-item"><span class="result-label">Hoàn thành lúc:</span><span class="result-value" id="res-date"></span></div>
+<div class="result-progress"><div class="xp-row"><span id="res-xp-text"></span><span id="res-xp-percent"></span></div><div class="xp-bar"><div class="xp-fill" id="res-xp-fill"></div></div><div class="section-title">Danh hiệu: <span id="res-achievement-count"></span></div><div class="badge-list" id="res-achievements"></div></div>
+<div class="security-box" id="res-verify"></div>
+</div>
+<p style="text-align:center;font-weight:800;color:var(--accent);margin:14px 0">Em hãy chụp màn hình kết quả này và gửi qua Zalo cho thầy.</p>
+<button class="btn btn-start" onclick="location.reload()">CHƠI LẠI</button>
+</div>
+<footer>© Game học tập Hóa học – Thầy Cao Hùng Thọ – THCS Tân Hóa<br><a href="tel:0888777395" class="footer-phone">Liên hệ: 0888777395</a></footer>
+</div>
+<canvas id="canvas-fireworks"></canvas>
+<script>
+const CHEMICAL_DB = [
+            {l:["CaCO3","HCl"], r:["CaCl2","CO2","H2O"]},
+            {l:["H2","O2"], r:["H2O"]}, {l:["P","O2"], r:["P2O5"]},
+            {l:["Mg","O2"], r:["MgO"]}, {l:["Al","O2"], r:["Al2O3"]},
+            {l:["Fe","O2"], r:["Fe3O4"]}, {l:["Na","O2"], r:["Na2O"]},
+            {l:["K","O2"], r:["K2O"]}, {l:["C","O2"], r:["CO2"]},
+            {l:["S","O2"], r:["SO2"]}, {l:["N2","H2"], r:["NH3"]},
+            {l:["KClO3"], r:["KCl","O2"]}, {l:["KMnO4"], r:["K2MnO4","MnO2","O2"]},
+            {l:["Na","H2O"], r:["NaOH","H2"]}, {l:["K","H2O"], r:["KOH","H2"]},
+            {l:["Ca","H2O"], r:["Ca(OH)2","H2"]}, {l:["Fe","HCl"], r:["FeCl2","H2"]},
+            {l:["Zn","HCl"], r:["ZnCl2","H2"]}, {l:["Al","HCl"], r:["AlCl3","H2"]},
+            {l:["Mg","HCl"], r:["MgCl2","H2"]}, {l:["Fe","H2SO4"], r:["FeSO4","H2"]},
+            {l:["Al","H2SO4"], r:["Al2(SO4)3","H2"]}, {l:["Zn","H2SO4"], r:["ZnSO4","H2"]},
+            {l:["NaOH","HCl"], r:["NaCl","H2O"]}, {l:["Ca(OH)2","HCl"], r:["CaCl2","H2O"]},
+            {l:["Al(OH)3","HCl"], r:["AlCl3","H2O"]}, {l:["KOH","H2SO4"], r:["K2SO4","H2O"]},
+            {l:["Ba(OH)2","H2SO4"], r:["BaSO4","H2O"]}, {l:["Fe2O3","HCl"], r:["FeCl3","H2O"]},
+            {l:["CuO","HCl"], r:["CuCl2","H2O"]}, {l:["Fe3O4","HCl"], r:["FeCl2","FeCl3","H2O"]},
+            {l:["MgO","H2SO4"], r:["MgSO4","H2O"]}, {l:["Al2O3","H2SO4"], r:["Al2(SO4)3","H2O"]},
+            {l:["CH4","O2"], r:["CO2","H2O"]}, {l:["C2H4","O2"], r:["CO2","H2O"]},
+            {l:["C2H2","O2"], r:["CO2","H2O"]}, {l:["C2H6O","O2"], r:["CO2","H2O"]},
+            {l:["Fe","CuSO4"], r:["FeSO4","Cu"]}, {l:["Al","CuSO4"], r:["Al2(SO4)3","Cu"]},
+            {l:["Zn","AgNO3"], r:["Zn(NO3)2","Ag"]}, {l:["Cu","AgNO3"], r:["Cu(NO3)2","Ag"]},
+            {l:["NaCl","AgNO3"], r:["AgCl","NaNO3"]}, {l:["BaCl2","Na2SO4"], r:["BaSO4","NaCl"]},
+            {l:["BaCl2","H2SO4"], r:["BaSO4","HCl"]}, {l:["Na2CO3","HCl"], r:["NaCl","CO2","H2O"]},
+            {l:["K2CO3","H2SO4"], r:["K2SO4","CO2","H2O"]}, {l:["Ba(OH)2","CO2"], r:["BaCO3","H2O"]},
+            {l:["Ca(OH)2","CO2"], r:["CaCO3","H2O"]}, {l:["CaO","H2O"], r:["Ca(OH)2"]},
+            {l:["Na2O","H2O"], r:["NaOH"]}, {l:["P2O5","H2O"], r:["H3PO4"]},
+            {l:["SO3","H2O"], r:["H2SO4"]}, {l:["Cu(OH)2"], r:["CuO","H2O"]},
+            {l:["Al(OH)3"], r:["Al2O3","H2O"]}, {l:["Fe(OH)3"], r:["Fe2O3","H2O"]},
+            {l:["AgNO3","HCl"], r:["AgCl","HNO3"]}, {l:["BaCl2","AgNO3"], r:["Ba(NO3)2","AgCl"]},
+            {l:["Fe2O3","CO"], r:["Fe","CO2"]}, {l:["CuO","CO"], r:["Cu","CO2"]},
+            {l:["Fe3O4","CO"], r:["Fe","CO2"]}, {l:["Fe2O3","H2"], r:["Fe","H2O"]},
+            {l:["CuO","H2"], r:["Cu","H2O"]}, {l:["FeO","H2"], r:["Fe","H2O"]},
+            {l:["CO","O2"], r:["CO2"]}, {l:["SO2","O2"], r:["SO3"]},
+            {l:["FeCl2","Cl2"], r:["FeCl3"]}, {l:["Fe","S"], r:["FeS"]},
+            {l:["Zn","S"], r:["ZnS"]}, {l:["Al","S"], r:["Al2S3"]},
+            {l:["H2S","O2"], r:["SO2","H2O"]}, {l:["NH3","O2"], r:["N2","H2O"]},
+            {l:["Na2SO3","HCl"], r:["NaCl","SO2","H2O"]}, {l:["K2SO3","H2SO4"], r:["K2SO4","SO2","H2O"]},
+            {l:["CaC2","H2O"], r:["Ca(OH)2","C2H2"]}, {l:["AgNO3","Na3PO4"], r:["Ag3PO4","NaNO3"]},
+            {l:["Ba(OH)2","Na2CO3"], r:["BaCO3","NaOH"]}, {l:["CaCl2","K2CO3"], r:["CaCO3","KCl"]},
+            {l:["H2O2"], r:["H2O","O2"]}, {l:["HgO"], r:["Hg","O2"]},
+            {l:["Fe(OH)2","O2","H2O"], r:["Fe(OH)3"]}, {l:["NO","O2"], r:["NO2"]},
+            {l:["CuCl2","NaOH"], r:["Cu(OH)2","NaCl"]}, {l:["FeCl2","NaOH"], r:["Fe(OH)2","NaCl"]},
+            {l:["FeCl3","KOH"], r:["Fe(OH)3","KCl"]}, {l:["Na2O","CO2"], r:["Na2CO3"]},
+            {l:["BaO","H2O"], r:["Ba(OH)2"]}, {l:["N2O5","H2O"], r:["HNO3"]},
+            {l:["Mg","N2"], r:["Mg3N2"]}, {l:["Al","N2"], r:["AlN"]},
+            {l:["KOH","CO2"], r:["K2CO3","H2O"]}, {l:["NaOH","SO2"], r:["Na2SO3","H2O"]},
+            {l:["FeS","HCl"], r:["FeCl2","H2S"]}, {l:["MgS","H2SO4"], r:["MgSO4","H2S"]},
+            {l:["Al2(SO4)3","NaOH"], r:["Al(OH)3","Na2SO4"]}, {l:["Fe2(SO4)3","KOH"], r:["Fe(OH)3","K2SO4"]},
+            {l:["NaHCO3"], r:["Na2CO3","CO2","H2O"]}, {l:["Ag2O"], r:["Ag","O2"]},
+            {l:["Cu(NO3)2"], r:["CuO","NO2","O2"]}, {l:["C3H8","O2"], r:["CO2","H2O"]},
+            {l:["Fe2O3","Al"], r:["Al2O3","Fe"]}
+];
+const RANKS=[
+{title:'Tập sự',icon:'🌱',questions:10,time:300,multiplier:1.0},
+{title:'Chiến binh',icon:'🛡️',questions:15,time:240,multiplier:1.15},
+{title:'Cao thủ',icon:'⚔️',questions:20,time:180,multiplier:1.3},
+{title:'Bậc thầy',icon:'🏅',questions:25,time:120,multiplier:1.5},
+{title:'Huyền thoại',icon:'🔥',questions:30,time:60,multiplier:1.8},
+{title:'Tối thượng',icon:'👑',questions:40,time:30,multiplier:2.2}
+];
+const ACHIEVEMENTS=[
+{id:'first_game',icon:'🎒',title:'Khởi đầu thuận lợi',desc:'Hoàn thành lượt chơi đầu tiên'},
+{id:'first_flawless',icon:'🎯',title:'Chính xác tuyệt đối',desc:'Có một lượt hoàn hảo'},
+{id:'streak20',icon:'⚡',title:'Bất bại',desc:'Đúng liên tiếp ít nhất 20 câu'},
+{id:'games10',icon:'💪',title:'Kiên trì',desc:'Hoàn thành 10 lượt chơi'},
+{id:'games30',icon:'🏃',title:'Bền bỉ',desc:'Hoàn thành 30 lượt chơi'},
+{id:'all100',icon:'🧪',title:'Bậc thầy nguyên tố',desc:'Chinh phục đủ 100 phương trình'},
+{id:'supreme_flawless',icon:'🚀',title:'Tốc độ ánh sáng',desc:'Hoàn hảo ở cấp Tối thượng'}
+];
+const STORE_KEY='chemistry_profiles_rank_level_v3';
+const OLD_STORE_KEY='chemistry_player_profiles_v2';
+const QUEUE_PREFIX='chemistry_rank_queue_v3_';
+const STREAK_BONUSES={5:10,10:25,20:50,30:80,40:120};
+let state={name:'',className:'',profileId:'',profile:null,mode:'ranked',rankIndex:0,rank:null,questions:[],questionIndices:[],score:0,completedCorrect:0,current:0,checks:0,firstTryCorrect:0,currentAttempts:0,flawless:true,currentStreak:0,bestStreakRun:0,xpEarned:0,newlyConquered:new Set(),questionLocked:false,draggedVal:null,activeInput:null,timer:null,timeRemaining:0,startTime:0,advanceTimeout:null,finished:false,startLevel:1,examId:'',testId:'',awardedStreakBonuses:new Set()};
+function normalizeIdentity(v){return v.normalize('NFC').trim().toLocaleLowerCase('vi-VN').replace(/\s+/g,' ')}
+function makeProfileId(n,c){return encodeURIComponent(`${normalizeIdentity(n)}|${normalizeIdentity(c)}`)}
+function defaultProfile(name,className){return{name,className,totalXp:0,totalCorrect:0,totalFirstTryCorrect:0,bestStreak:0,gamesPlayed:0,flawlessGames:0,rankIndex:0,rankStars:0,crowns:0,starQuestionIndices:[],uniqueCorrect:[],achievements:{},updatedAt:''}}
+function loadRawStore(){try{const x=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{}}catch(e){return{}}}
+function migrateOldStore(){if(localStorage.getItem(STORE_KEY))return;try{const old=JSON.parse(localStorage.getItem(OLD_STORE_KEY)||'{}');if(!old||typeof old!=='object')return;const converted={};Object.entries(old).forEach(([id,p])=>{const d=defaultProfile(p.name||'',p.className||'');d.totalXp=Math.max(0,Number(p.totalXp)||0);d.totalCorrect=Math.max(0,Number(p.totalCorrect)||0);d.bestStreak=Math.max(0,Number(p.bestStreak)||0);d.gamesPlayed=Math.max(0,Number(p.gamesPlayed)||0);d.flawlessGames=0;converted[id]=d});localStorage.setItem(STORE_KEY,JSON.stringify(converted))}catch(e){}}
+function sanitizeProfile(p,name,className){const d={...defaultProfile(name,className),...(p||{})};d.name=name||d.name;d.className=className||d.className;['totalXp','totalCorrect','totalFirstTryCorrect','bestStreak','gamesPlayed','flawlessGames','rankIndex','rankStars','crowns'].forEach(k=>d[k]=Math.max(0,Math.floor(Number(d[k])||0)));d.rankIndex=Math.min(RANKS.length-1,d.rankIndex);d.rankStars=Math.min(1,d.rankStars);d.starQuestionIndices=Array.isArray(d.starQuestionIndices)?[...new Set(d.starQuestionIndices.filter(Number.isInteger))]:[];d.uniqueCorrect=Array.isArray(d.uniqueCorrect)?[...new Set(d.uniqueCorrect.filter(i=>Number.isInteger(i)&&i>=0&&i<CHEMICAL_DB.length))]:[];d.achievements=d.achievements&&typeof d.achievements==='object'?d.achievements:{};return d}
+function loadProfile(name,className){const id=makeProfileId(name,className),store=loadRawStore();return{id,profile:sanitizeProfile(store[id],name,className)}}
+function saveProfile(id,p){try{const store=loadRawStore();store[id]={...p,updatedAt:new Date().toISOString()};localStorage.setItem(STORE_KEY,JSON.stringify(store))}catch(e){}}
+function xpNeeded(level){if(level<=10)return 150;if(level<=20)return 200;if(level<=30)return 250;if(level<=50)return 300;return 400}
+function getLevelInfo(totalXp){let remaining=Math.max(0,Math.floor(Number(totalXp)||0)),level=1;while(remaining>=xpNeeded(level)&&level<10000){remaining-=xpNeeded(level);level++}const needed=xpNeeded(level),percent=Math.round(remaining/needed*100);return{level,xpInLevel:remaining,needed,percent,nextTotal:Math.max(0,Math.floor(Number(totalXp)||0))+(needed-remaining)}}
+function rankProgressText(p){const r=RANKS[p.rankIndex];if(p.rankIndex===RANKS.length-1)return`${r.icon} ${r.title} · 👑 ${p.crowns} · ${p.rankStars?'⭐☆':'☆☆'}`;return`${r.icon} ${r.title} · ${p.rankStars?'⭐☆':'☆☆'}`}
+function firstTryRate(p){return p.totalCorrect?Math.round(p.totalFirstTryCorrect/p.totalCorrect*100):0}
+function renderAchievements(containerId,p){const el=document.getElementById(containerId);if(!el)return;el.replaceChildren();ACHIEVEMENTS.forEach(a=>{const s=document.createElement('span'),earned=!!p.achievements[a.id];s.className=`achievement${earned?' earned':''}`;s.textContent=`${earned?a.icon:'🔒'} ${a.title}`;s.title=a.desc;el.appendChild(s)})}
+function countAchievements(p){return ACHIEVEMENTS.filter(a=>p.achievements[a.id]).length}
+function awardAchievements(p,flawless,playedRankIndex){const now=new Date().toISOString();const give=id=>{if(!p.achievements[id])p.achievements[id]=now};if(p.gamesPlayed>=1)give('first_game');if(p.flawlessGames>=1)give('first_flawless');if(p.bestStreak>=20)give('streak20');if(p.gamesPlayed>=10)give('games10');if(p.gamesPlayed>=30)give('games30');if(p.uniqueCorrect.length>=CHEMICAL_DB.length)give('all100');if(flawless&&playedRankIndex===5)give('supreme_flawless')}
+function updateProfilePreview(){const name=document.getElementById('stu-name').value.trim(),className=document.getElementById('stu-class').value.trim();const p=name&&className?loadProfile(name,className).profile:defaultProfile(name,className),li=getLevelInfo(p.totalXp),r=RANKS[p.rankIndex];document.getElementById('profile-name').textContent=name&&className?`${name} – Lớp ${className}`:'Nhập họ tên và lớp để xem hồ sơ';document.getElementById('profile-level').textContent=`LEVEL ${li.level}`;document.getElementById('profile-rank').textContent=`${r.icon} ${r.title}${p.rankIndex===5?` · 👑 ${p.crowns}`:''}`;document.getElementById('profile-stars').textContent=p.rankStars?'⭐☆':'☆☆';document.getElementById('profile-xp-text').textContent=`${li.xpInLevel} / ${li.needed} XP đến Level ${li.level+1}`;document.getElementById('profile-xp-percent').textContent=`${li.percent}%`;document.getElementById('profile-xp-fill').style.width=`${li.percent}%`;document.getElementById('profile-total-correct').textContent=p.totalCorrect;document.getElementById('profile-first-rate').textContent=`${firstTryRate(p)}%`;document.getElementById('profile-unique').textContent=`${p.uniqueCorrect.length}/${CHEMICAL_DB.length}`;document.getElementById('profile-games').textContent=p.gamesPlayed;document.getElementById('profile-achievement-count').textContent=`${countAchievements(p)}/${ACHIEVEMENTS.length}`;renderAchievements('profile-achievements',p);document.getElementById('challenge-rank').textContent=rankProgressText(p);document.getElementById('challenge-count').textContent=`${r.questions} câu`;document.getElementById('challenge-time').textContent=`${formatTimeLabel(r.time)}/câu`;populatePracticeSelect(p.rankIndex);renderLeaderboard(name&&className?makeProfileId(name,className):'')}
+function populatePracticeSelect(maxRank){const select=document.getElementById('practice-rank'),current=Number(select.value||maxRank);select.replaceChildren();for(let i=0;i<=maxRank;i++){const r=RANKS[i],o=document.createElement('option');o.value=String(i);o.textContent=`${r.icon} ${r.title} – ${r.questions} câu – ${formatTimeLabel(r.time)}/câu`;select.appendChild(o)}select.value=String(Math.min(current,maxRank))}
+function renderLeaderboard(currentId=''){const wrap=document.getElementById('leaderboard-wrap'),store=loadRawStore(),rows=Object.entries(store).map(([id,raw])=>{const p=sanitizeProfile(raw,raw.name||'',raw.className||''),li=getLevelInfo(p.totalXp);return{id,p,li,rate:firstTryRate(p)}}).filter(x=>x.p.name).sort((a,b)=>b.li.level-a.li.level||b.p.rankIndex-a.p.rankIndex||b.p.crowns-a.p.crowns||b.p.rankStars-a.p.rankStars||b.rate-a.rate||b.p.uniqueCorrect.length-a.p.uniqueCorrect.length||b.p.totalXp-a.p.totalXp).slice(0,10);if(!rows.length){wrap.innerHTML='<div class="empty">Chưa có hồ sơ nào trên thiết bị.</div>';return}const table=document.createElement('table');table.className='leaderboard-table';table.innerHTML='<thead><tr><th>Hạng</th><th>Học sinh</th><th>Level</th><th>Cấp bậc</th><th>Đúng lần đầu</th></tr></thead>';const body=document.createElement('tbody');rows.forEach((x,i)=>{const tr=document.createElement('tr');if(x.id===currentId)tr.className='me';tr.innerHTML=`<td>${i+1}</td><td>${escapeHtml(x.p.name)}<br><small>${escapeHtml(x.p.className)}</small></td><td><strong>${x.li.level}</strong></td><td>${escapeHtml(rankProgressText(x.p))}</td><td>${x.rate}%</td>`;body.appendChild(tr)});table.appendChild(body);wrap.replaceChildren(table)}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function shuffleArray(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+function queueKey(){return QUEUE_PREFIX+(state.profileId||'guest')}
+function loadQueue(){try{const q=JSON.parse(localStorage.getItem(queueKey())||'[]');return Array.isArray(q)?[...new Set(q.filter(i=>Number.isInteger(i)&&i>=0&&i<CHEMICAL_DB.length))]:[]}catch(e){return[]}}
+function saveQueue(q){try{localStorage.setItem(queueKey(),JSON.stringify(q))}catch(e){}}
+function getNextQuestionIndices(count,excluded=[]){let queue=loadQueue(),selected=[],exclude=new Set(excluded);while(selected.length<count){let pos=queue.findIndex(i=>!exclude.has(i)&&!selected.includes(i));if(pos<0){let eligible=Array.from({length:CHEMICAL_DB.length},(_,i)=>i).filter(i=>!exclude.has(i)&&!selected.includes(i));if(!eligible.length)eligible=Array.from({length:CHEMICAL_DB.length},(_,i)=>i).filter(i=>!selected.includes(i));queue.push(...shuffleArray(eligible));pos=queue.findIndex(i=>!exclude.has(i)&&!selected.includes(i));if(pos<0)pos=queue.findIndex(i=>!selected.includes(i))}selected.push(queue.splice(pos,1)[0])}saveQueue(queue);return selected}
+function selectedMode(){return document.querySelector('input[name="play-mode"]:checked')?.value||'ranked'}
+function startGame(){state.name=document.getElementById('stu-name').value.trim();state.className=document.getElementById('stu-class').value.trim();if(!state.name||!state.className)return alert('Em vui lòng nhập đầy đủ Họ tên và Lớp nhé!');const loaded=loadProfile(state.name,state.className);state.profileId=loaded.id;state.profile=loaded.profile;state.mode=selectedMode();state.rankIndex=state.mode==='ranked'?state.profile.rankIndex:Math.min(state.profile.rankIndex,Math.max(0,Number(document.getElementById('practice-rank').value)||0));state.rank=RANKS[state.rankIndex];state.score=0;state.completedCorrect=0;state.current=0;state.checks=0;state.firstTryCorrect=0;state.currentAttempts=0;state.flawless=true;state.currentStreak=0;state.bestStreakRun=0;state.xpEarned=0;state.newlyConquered=new Set();state.questionLocked=false;state.finished=false;state.awardedStreakBonuses=new Set();state.startLevel=getLevelInfo(state.profile.totalXp).level;state.examId=`E-${Math.random().toString(36).slice(2,7).toUpperCase()}-R${state.rankIndex+1}`;state.testId=`T-${Date.now().toString().slice(-6)}`;const excluded=state.mode==='ranked'&&state.profile.rankStars===1?state.profile.starQuestionIndices:[];state.questionIndices=getNextQuestionIndices(state.rank.questions,excluded);state.questions=state.questionIndices.map(i=>CHEMICAL_DB[i]);state.startTime=Date.now();document.getElementById('ui-level').textContent=String(state.startLevel);document.getElementById('ui-rank').textContent=`${state.rank.icon} ${state.rank.title}`;document.getElementById('ui-score').textContent='0';document.getElementById('ui-xp').textContent='+0';document.getElementById('ui-first').textContent='0';document.getElementById('ui-streak').textContent='0';document.getElementById('screen-start').classList.remove('active');document.getElementById('screen-game').classList.add('active');initBank();loadQuestion()}
+function initBank(){const bank=document.getElementById('number-bank');bank.replaceChildren();for(let i=1;i<=22;i++){const d=document.createElement('div');d.className='num-tag';d.textContent=i;d.draggable=true;d.tabIndex=0;d.setAttribute('role','button');d.addEventListener('dragstart',()=>state.draggedVal=i);const choose=e=>{e.preventDefault();fillActiveInput(i)};d.addEventListener('pointerdown',choose);d.addEventListener('click',choose);d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fillActiveInput(i)}});bank.appendChild(d)}}
+function fillActiveInput(v){if(state.questionLocked||!state.activeInput||!document.body.contains(state.activeInput))return;state.activeInput.value=String(v);state.activeInput.focus({preventScroll:true})}
+function setActiveInput(input){document.querySelectorAll('.coeff-input-wrapper.selected').forEach(e=>e.classList.remove('selected'));state.activeInput=input;input.parentElement.classList.add('selected')}
+function appendSpan(parent,html){const s=document.createElement('span');s.innerHTML=html;parent.appendChild(s)}
+function appendChemSpan(parent,chem,id){const s=document.createElement('span');s.className='chem-formula';s.id=id;s.innerHTML=formatChem(chem);parent.appendChild(s)}
+function createInput(id){const w=document.createElement('div'),i=document.createElement('input');w.className='coeff-input-wrapper';i.className='coeff-input';i.type='number';i.inputMode='numeric';i.min='1';i.max='22';i.step='1';i.placeholder='1';i.title='Để trống nếu hệ số là 1';i.id=id;i.autocomplete='off';i.addEventListener('focus',()=>setActiveInput(i));i.addEventListener('pointerdown',()=>setActiveInput(i));w.addEventListener('dragover',e=>{if(!state.questionLocked){e.preventDefault();w.classList.add('active-drop')}});w.addEventListener('dragleave',()=>w.classList.remove('active-drop'));w.addEventListener('drop',e=>{e.preventDefault();w.classList.remove('active-drop');if(!state.questionLocked&&state.draggedVal!=null){i.value=String(state.draggedVal);setActiveInput(i)}});w.appendChild(i);return w}
+function loadQuestion(){clearInterval(state.timer);clearTimeout(state.advanceTimeout);if(state.current>=state.questions.length)return finishGame();state.questionLocked=false;state.activeInput=null;state.currentAttempts=0;setControlsDisabled(false);const q=state.questions[state.current],area=document.getElementById('eq-area'),feedback=document.getElementById('msg-feedback');area.replaceChildren();feedback.textContent='';feedback.classList.remove('correct-pop');document.getElementById('ui-progress').textContent=`${state.current+1}/${state.questions.length}`;q.l.forEach((c,j)=>{area.appendChild(createInput(`l-${j}`));appendChemSpan(area,c,`chem-l-${j}`);if(j<q.l.length-1)appendSpan(area,' + ')});appendSpan(area,' → ');q.r.forEach((c,j)=>{area.appendChild(createInput(`r-${j}`));appendChemSpan(area,c,`chem-r-${j}`);if(j<q.r.length-1)appendSpan(area,' + ')});const first=area.querySelector('.coeff-input');if(first)setActiveInput(first);startTimer()}
+function formatChem(s){return s.replace(/(\d+)/g,'<sub>$1</sub>')}
+function parseFormula(f){let stack=[{}],re=/([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g,m;while((m=re.exec(f))){if(m[1]){const a=m[1],n=parseInt(m[2]||'1');stack[stack.length-1][a]=(stack[stack.length-1][a]||0)+n}else if(m[3])stack.push({});else if(m[4]){const top=stack.pop(),mult=parseInt(m[5]||'1');for(const a in top)stack[stack.length-1][a]=(stack[stack.length-1][a]||0)+top[a]*mult}}return stack[0]}
+function gcd(a,b){while(b!==0)[a,b]=[b,a%b];return Math.abs(a)}
+function getEntered(q){const ids=[...q.l.map((_,i)=>`l-${i}`),...q.r.map((_,i)=>`r-${i}`)],co=[];for(const id of ids){const input=document.getElementById(id),raw=input.value.trim();if(raw===''){co.push(1);continue}const value=Number(raw);if(!Number.isInteger(value)||value<1||value>22){setActiveInput(input);input.parentElement.classList.add('error-location');return{error:'Hệ số phải là số nguyên từ 1 đến 22. Ô để trống được tính mặc định là 1.'}}co.push(value)}const common=co.reduce(gcd);if(common>1)return{error:`Hệ số chưa tối giản. Em hãy chia tất cả hệ số cho ${common}.`};return{left:co.slice(0,q.l.length),right:co.slice(q.l.length)}}
+function clearErrorHighlights(){document.querySelectorAll('.error-location').forEach(el=>el.classList.remove('error-location'))}
+function markAttemptFailed(){state.flawless=false;state.currentStreak=0;document.getElementById('ui-streak').textContent='0'}
+function highlightBalanceErrors(q,errors){const bad=new Set(errors);const mark=(side,chem,index)=>{const atoms=parseFormula(chem);if(Object.keys(atoms).some(a=>bad.has(a))){document.getElementById(`${side}-${index}`)?.parentElement.classList.add('error-location');document.getElementById(`chem-${side}-${index}`)?.classList.add('error-location')}};q.l.forEach((chem,i)=>mark('l',chem,i));q.r.forEach((chem,i)=>mark('r',chem,i))}
+function balanceErrorDetails(errors,left,right){return errors.map(a=>{const l=left[a]||0,r=right[a]||0,diff=Math.abs(l-r),side=l>r?'vế trái':'vế phải';return`<li><strong>${a}</strong>: vế trái ${l}, vế phải ${r} — ${side} nhiều hơn ${diff}</li>`}).join('')}
+function setControlsDisabled(v){['btn-check','btn-clear','btn-skip'].forEach(id=>document.getElementById(id).disabled=v);document.querySelectorAll('.coeff-input').forEach(i=>i.disabled=v)}
+function awardXp(base,factor=1){const earned=Math.max(0,Math.round(base*state.rank.multiplier*factor));state.xpEarned+=earned;const e=document.getElementById('ui-xp');e.textContent=`+${state.xpEarned}`;e.classList.remove('xp-flash');void e.offsetWidth;e.classList.add('xp-flash');return earned}
+function checkAnswer(){
+if(state.questionLocked)return;
+const q=state.questions[state.current],feedback=document.getElementById('msg-feedback');
+clearErrorHighlights();
+state.checks++;
+state.currentAttempts++;
+const entered=getEntered(q);
+if(entered.error){
+markAttemptFailed();
+feedback.innerHTML=`<span style="color:var(--danger)">${entered.error}</span><span class="feedback-note">Lần kiểm tra này đã được tính. Em sửa lại để qua câu, nhưng câu này sẽ không được cộng điểm.</span>`;
+return;
+}
+const left={},right={};
+q.l.forEach((c,i)=>{const at=parseFormula(c);for(const a in at)left[a]=(left[a]||0)+at[a]*entered.left[i]});
+q.r.forEach((c,i)=>{const at=parseFormula(c);for(const a in at)right[a]=(right[a]||0)+at[a]*entered.right[i]});
+const errors=[],atoms=new Set([...Object.keys(left),...Object.keys(right)]);
+atoms.forEach(a=>{if((left[a]||0)!==(right[a]||0))errors.push(a)});
+if(errors.length){
+markAttemptFailed();
+highlightBalanceErrors(q,errors);
+feedback.innerHTML=`<span style="color:var(--danger)">Chưa cân bằng đúng. Các hệ số và công thức liên quan đã được viền đỏ.</span><ul class="feedback-detail">${balanceErrorDetails(errors,left,right)}</ul><span class="feedback-note">Em hãy sửa các vị trí trên rồi bấm kiểm tra lại. Khi sửa đúng, game sẽ cho qua câu nhưng không cộng điểm.</span>`;
+return;
+}
+state.questionLocked=true;
+clearInterval(state.timer);
+setControlsDisabled(true);
+clearErrorHighlights();
+state.completedCorrect++;
+const firstTry=state.currentAttempts===1;
+const qIndex=state.questionIndices[state.current];
+const firstEver=!state.profile.uniqueCorrect.includes(qIndex)&&!state.newlyConquered.has(qIndex);
+if(firstEver)state.newlyConquered.add(qIndex);
+if(firstTry){
+state.currentStreak++;
+state.bestStreakRun=Math.max(state.bestStreakRun,state.currentStreak);
+document.getElementById('ui-streak').textContent=String(state.currentStreak);
+state.firstTryCorrect++;
+document.getElementById('ui-first').textContent=String(state.firstTryCorrect);
+const repeatFactor=firstEver?1:.5;
+let earned=awardXp(10,repeatFactor),extra='';
+const bonus=STREAK_BONUSES[state.currentStreak];
+if(bonus&&!state.awardedStreakBonuses.has(state.currentStreak)){
+state.awardedStreakBonuses.add(state.currentStreak);
+earned+=awardXp(bonus);
+extra=` + thưởng chuỗi ${state.currentStreak}`;
+}
+state.score++;
+document.getElementById('ui-score').textContent=String(state.score);
+feedback.innerHTML=`<span style="color:var(--success)">🎉 Chính xác ngay lần đầu! +1 điểm · +${earned} XP${extra}${firstEver?' · Câu mới đã chinh phục':''}</span>`;
+feedback.classList.remove('correct-pop');void feedback.offsetWidth;feedback.classList.add('correct-pop');
+runFireworks(1500);
+}else{
+state.currentStreak=0;
+document.getElementById('ui-streak').textContent='0';
+feedback.innerHTML='<span style="color:var(--success)">✅ Em đã sửa đúng. Câu này được cho qua nhưng không cộng điểm và không cộng XP.</span>';
+feedback.classList.remove('correct-pop');void feedback.offsetWidth;feedback.classList.add('correct-pop');
+}
+state.advanceTimeout=setTimeout(advanceQuestion,firstTry?1700:2100);
+}
+function clearCoeffs(){if(state.questionLocked)return;document.querySelectorAll('.coeff-input').forEach(i=>i.value='');const f=document.querySelector('.coeff-input');if(f){setActiveInput(f);f.focus({preventScroll:true})}}
+function skipQuestion(reason='skip'){if(state.questionLocked)return;state.questionLocked=true;state.flawless=false;state.currentStreak=0;document.getElementById('ui-streak').textContent='0';setControlsDisabled(true);advanceQuestion()}
+function advanceQuestion(){clearInterval(state.timer);clearTimeout(state.advanceTimeout);state.current++;loadQuestion()}
+function formatTimer(sec){return`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`}
+function formatTimeLabel(sec){return sec>=60?`${sec/60} phút`:`${sec} giây`}
+function startTimer(){clearInterval(state.timer);state.timeRemaining=state.rank.time;const el=document.getElementById('timer'),warning=Math.max(7,Math.min(30,Math.floor(state.rank.time/4)));el.textContent=formatTimer(state.timeRemaining);el.className='stat-value';state.timer=setInterval(()=>{if(state.questionLocked)return;state.timeRemaining--;el.textContent=formatTimer(Math.max(0,state.timeRemaining));if(state.timeRemaining<=warning)el.classList.add('warning');if(state.timeRemaining<=0)skipQuestion('timeout')},1000)}
+function utf8ToBase64(v){const bytes=new TextEncoder().encode(v);let b='';bytes.forEach(x=>b+=String.fromCharCode(x));return btoa(b)}
+function finishGame(){if(state.finished)return;state.finished=true;clearInterval(state.timer);clearTimeout(state.advanceTimeout);state.questionLocked=true;awardXp(20);const perfectScore=state.score===state.questions.length,flawless=perfectScore&&state.flawless&&state.firstTryCorrect===state.questions.length;if(perfectScore)awardXp(25);if(flawless)awardXp(50);const beforeLevel=getLevelInfo(state.profile.totalXp),beforeRank=state.profile.rankIndex,beforeCrowns=state.profile.crowns;state.profile.totalXp+=state.xpEarned;state.profile.totalCorrect+=state.completedCorrect;state.profile.totalFirstTryCorrect+=state.firstTryCorrect;state.profile.bestStreak=Math.max(state.profile.bestStreak,state.bestStreakRun);state.profile.gamesPlayed++;if(flawless)state.profile.flawlessGames++;state.profile.uniqueCorrect=[...new Set([...state.profile.uniqueCorrect,...state.newlyConquered])];let rankUp=false,crownUp=false,starEarned=false;if(state.mode==='ranked'&&flawless){starEarned=true;if(state.profile.rankStars===0){state.profile.rankStars=1;state.profile.starQuestionIndices=[...state.questionIndices]}else{state.profile.rankStars=0;state.profile.starQuestionIndices=[];if(state.profile.rankIndex<RANKS.length-1){state.profile.rankIndex++;rankUp=true}else{state.profile.crowns++;crownUp=true}}}awardAchievements(state.profile,flawless,state.rankIndex);saveProfile(state.profileId,state.profile);const afterLevel=getLevelInfo(state.profile.totalXp);document.getElementById('screen-game').classList.remove('active');document.getElementById('screen-result').classList.add('active');const total=Math.floor((Date.now()-state.startTime)/1000),now=new Date();document.getElementById('res-player-level').textContent=`LEVEL ${afterLevel.level}`;document.getElementById('res-level-progress').textContent=`${afterLevel.xpInLevel}/${afterLevel.needed} XP đến Level ${afterLevel.level+1}`;document.getElementById('res-name').textContent=state.name;document.getElementById('res-class').textContent=state.className;document.getElementById('res-score').textContent=`${state.score}/${state.questions.length}`;document.getElementById('res-first').textContent=`${state.firstTryCorrect}/${state.questions.length}`;document.getElementById('res-mode').textContent=state.mode==='ranked'?'🏆 Xếp hạng':'📘 Luyện tập';document.getElementById('res-rank').textContent=`${state.rank.icon} ${state.rank.title} – ${state.rank.questions} câu – ${formatTimeLabel(state.rank.time)}/câu`;const pe=document.getElementById('res-perfect');pe.classList.toggle('success',flawless);pe.textContent=flawless?'⭐ LƯỢT HOÀN HẢO':state.completedCorrect===state.questions.length?'Đã sửa đúng hết nhưng chỉ tính điểm lần đầu':'Chưa hoàn hảo';document.getElementById('res-xp-earned').textContent=`+${state.xpEarned} XP`;document.getElementById('res-streak').textContent=`${state.bestStreakRun} câu`;document.getElementById('res-total-time').textContent=`${Math.floor(total/60)} phút ${total%60} giây`;document.getElementById('res-date').textContent=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} – ${now.toLocaleDateString('vi-VN')}`;document.getElementById('res-xp-text').textContent=`${afterLevel.xpInLevel} / ${afterLevel.needed} XP`;document.getElementById('res-xp-percent').textContent=`${afterLevel.percent}%`;document.getElementById('res-xp-fill').style.width=`${afterLevel.percent}%`;document.getElementById('res-achievement-count').textContent=`${countAchievements(state.profile)}/${ACHIEVEMENTS.length}`;renderAchievements('res-achievements',state.profile);const lb=document.getElementById('res-level-up');if(afterLevel.level>beforeLevel.level){document.getElementById('res-level-up-text').textContent=`Em đã lên Level ${afterLevel.level}. Level là tiêu chí xếp hạng đầu tiên.`;lb.classList.add('show')}else lb.classList.remove('show');const rb=document.getElementById('res-rank-up');if(rankUp){document.getElementById('res-rank-up-text').textContent=`Em đã trở thành ${RANKS[state.profile.rankIndex].icon} ${RANKS[state.profile.rankIndex].title}!`;rb.classList.add('show')}else if(crownUp){document.getElementById('res-rank-up-text').textContent=`Em đã nhận Vương miện Tối thượng thứ ${state.profile.crowns}!`;rb.classList.add('show')}else if(starEarned&&state.mode==='ranked'){document.getElementById('res-rank-up-text').textContent=`Em đã nhận 1 sao hoàn hảo. Cần thêm 1 lượt hoàn hảo với bộ câu khác để thăng hạng.`;rb.classList.add('show')}else rb.classList.remove('show');const verify=`${state.name}|${state.score}|${state.firstTryCorrect}|${state.testId}|R${state.rankIndex}|XP${state.xpEarned}|L${afterLevel.level}|${flawless?'F':'N'}`;document.getElementById('res-verify').textContent='Mã xác thực: '+utf8ToBase64(verify).replace(/=+$/g,'').slice(0,26).toUpperCase();if(afterLevel.level>beforeLevel.level||rankUp||crownUp||flawless)runFireworks(6500);else if(state.score/state.questions.length>=.8)runFireworks(3500)}
+function toggleMode(){document.getElementById('practice-row').classList.toggle('show',selectedMode()==='practice')}
+document.querySelectorAll('input[name="play-mode"]').forEach(i=>i.addEventListener('change',toggleMode));document.getElementById('stu-name').addEventListener('input',updateProfilePreview);document.getElementById('stu-class').addEventListener('input',updateProfilePreview);migrateOldStore();toggleMode();updateProfilePreview();
+let fireworksAnimationId=null,fireworksHideTimer=null;function runFireworks(duration=1600){const canvas=document.getElementById('canvas-fireworks'),ctx=canvas.getContext('2d'),dpr=Math.max(1,window.devicePixelRatio||1),w=innerWidth,h=innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';canvas.style.display='block';ctx.setTransform(dpr,0,0,dpr,0,0);if(fireworksAnimationId)cancelAnimationFrame(fireworksAnimationId);if(fireworksHideTimer)clearTimeout(fireworksHideTimer);const ps=[],start=performance.now(),end=start+duration;let next=start;function burst(){const x=w*(.15+Math.random()*.7),y=h*(.12+Math.random()*.42),hue=Math.random()*360;for(let i=0;i<40;i++){const a=Math.PI*2*i/40+Math.random()*.12,s=2.4+Math.random()*5;ps.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:.055,f:.985,a:1,d:.012+Math.random()*.012,z:1.5+Math.random()*2.2,c:`hsl(${hue+Math.random()*35},100%,58%)`})}}function anim(now){ctx.clearRect(0,0,w,h);if(now<end&&now>=next){burst();next=now+260}for(let i=ps.length-1;i>=0;i--){const p=ps[i];p.vx*=p.f;p.vy=p.vy*p.f+p.g;p.x+=p.vx;p.y+=p.vy;p.a-=p.d;if(p.a<=0){ps.splice(i,1);continue}ctx.globalAlpha=p.a;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.z,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;if(now<end||ps.length)fireworksAnimationId=requestAnimationFrame(anim);else{fireworksAnimationId=null;canvas.style.display='none'}}burst();fireworksAnimationId=requestAnimationFrame(anim);fireworksHideTimer=setTimeout(()=>{if(fireworksAnimationId)cancelAnimationFrame(fireworksAnimationId);fireworksAnimationId=null;canvas.style.display='none';ctx.clearRect(0,0,w,h)},duration+2500)}
+</script>
+</body>
+</html>
